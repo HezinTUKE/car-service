@@ -1,0 +1,20 @@
+database:
+  username: admin
+  password: admin
+  port: 5435
+  host: localhost
+  db_name: car_service_db
+
+rabbitmq:
+  username: admin
+  password: admin
+
+security:
+  secret_key: 5jEbGIulaoPQRfiVO4XZLG4rkC9IdHZH3UzBREV9GqauTtsQvPta7XsfRijHaVAD4Lk1KcJgPkgbtV1w7sydtX4IkrzOgyH2sVpS
+  algorithm: HS256
+  token_expire: 25  # in minutes
+  refresh_token_expire: 20  # in minutes
+
+redis:
+  host: localhost
+  port: 6379

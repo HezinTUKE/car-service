@@ -1,0 +1,1 @@
+LOGIN_CONTROLLER_NAME = "auth"
