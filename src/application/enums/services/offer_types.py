@@ -1,0 +1,9 @@
+from enum import Enum
+
+
+class OfferType(Enum):
+    MAINTENANCE = "MAINTENANCE"
+    REPAIR = "REPAIR"
+    DIAGNOSTICS = "DIAGNOSTICS"
+    ELECTRICAL = "ELECTRICAL"
+    BODY_WORK = "BODY_WORK"

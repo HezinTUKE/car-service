@@ -41,10 +41,7 @@ def enum_column(enum_class: Type[Enum], length: int = None, **kwargs):
         max_length = max(len(item.value) for item in enum_class)
         length = max_length + 5  # Add some buffer
 
-    return mapped_column(
-        EnumAsVarchar(enum_class, length=length),
-        **kwargs
-    )
+    return mapped_column(EnumAsVarchar(enum_class, length=length), **kwargs)
 
 
 def get_enum_max_length(enum_class: Type[Enum], buffer: int = 5) -> int:

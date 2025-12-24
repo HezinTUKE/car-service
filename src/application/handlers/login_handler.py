@@ -7,7 +7,11 @@ from sqlalchemy import select
 
 from application.enums.roles import Roles
 from application.models import UsersModel
-from application.utils.password_utils import create_access_token, hash_password, verify_password
+from application.utils.password_utils import (
+    create_access_token,
+    hash_password,
+    verify_password,
+)
 
 
 class LoginHandler:
@@ -15,24 +19,22 @@ class LoginHandler:
     @classmethod
     async def login(cls, password: str, email: str, session: AsyncSession):
         hashed_password = hash_password(password)
-        _query = select(UsersModel).filter(
-            UsersModel.email == email
-        )
+        _query = select(UsersModel).filter(UsersModel.email == email)
         _query_result = await session.execute(_query)
         user: UsersModel = _query_result.scalar_one_or_none()
 
         if not user or verify_password(hashed_password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password"
+                detail="Incorrect username or password",
             )
 
-        access_token = create_access_token({"sub": user.email})
+        access_token = create_access_token({"sub": user.email, "permission": user.role.value, "user_id": user.user_id}, False)
         refresh_token = create_access_token({"sub": user.email}, True)
 
         response = JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"access_token": access_token, "token_type": "bearer"}
+            content={"access_token": access_token, "token_type": "bearer"},
         )
 
         response.set_cookie(
@@ -66,3 +68,15 @@ class LoginHandler:
         except Exception:
             traceback.print_exc()
             return False
+
+    @classmethod
+    async def logout(cls):
+        response = JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"message": "Successfully logged out"},
+        )
+
+        response.delete_cookie(key="access_token")
+        response.delete_cookie(key="refresh_token")
+
+        return response

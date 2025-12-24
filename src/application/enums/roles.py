@@ -5,3 +5,4 @@ class Roles(Enum):
     ADMIN = "ADMIN"
     MODERATOR = "MODERATOR"
     USER = "USER"
+    MASTER = "MASTER"

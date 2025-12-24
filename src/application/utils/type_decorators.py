@@ -89,16 +89,20 @@ class EnumAsVarchar(TypeDecorator):
         """Return a conversion callable for this type"""
         impl_processor = self.impl.literal_processor(dialect)
         if impl_processor:
+
             def process(value):
                 if isinstance(value, self.enum_class):
                     value = value.value
                 return impl_processor(value)
+
             return process
         else:
+
             def process(value):
                 if isinstance(value, self.enum_class):
                     return f"'{value.value}'"
                 return f"'{value}'"
+
             return process
 
     @classmethod
@@ -115,12 +119,11 @@ class EnumAsVarchar(TypeDecorator):
             expected_length = metadata_type.impl.length
 
             # Compare the inspected type with the expected length
-            if hasattr(inspected_type, 'length'):
+            if hasattr(inspected_type, "length"):
                 return inspected_type.length == expected_length
 
             # If we can't compare lengths, assume they're the same type family
-            return str(type(inspected_type)).lower().find('string') != -1 or \
-                   str(type(inspected_type)).lower().find('varchar') != -1
+            return str(type(inspected_type)).lower().find("string") != -1 or str(type(inspected_type)).lower().find("varchar") != -1
 
         # Not our type, let other handlers deal with it
         return None

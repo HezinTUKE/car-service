@@ -1,7 +1,7 @@
 database:
-  username: admin
-  password: admin
-  port: 5435
+  username: test_username
+  password: test_password
+  port: 5446
   host: localhost
   db_name: car_service_db
 

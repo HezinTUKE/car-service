@@ -21,8 +21,11 @@ asyncpg = "^0.30.0"
 greenlet = "^3.2.3"
 sqlalchemy = "^2.0.44"
 psycopg2-binary = "^2.9.10"
+dataclasses-json = "^0.6.7"
+geopy = "^2.4.1"
 pyyaml = "^6.0.3"
 fastapi = "^0.121.3"
+pydantic = {version = "^2.12.5", extras = ["email"]}
 uvicorn = ">=0.34.2,<0.35.0"
 python-multipart = "^0.0.20"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}

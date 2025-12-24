@@ -5,6 +5,7 @@ from application import config
 
 Base = dec.declarative_base()
 
+
 class DBModel:
     config_db = config["database"]
     db_url = f"""postgresql+asyncpg://{config_db.get("username")}:{config_db.get("password")}@{config_db.get("host")}:{config_db.get("port")}/{config_db.get("db_name")}"""

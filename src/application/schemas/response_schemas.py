@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from application.enums.roles import Roles
+
 
 class LoginResponseSchema(BaseModel):
     access_token: str
@@ -13,3 +15,4 @@ class SignupResponseSchema(BaseModel):
 class LogoutResponseSchema(BaseModel):
     message: str
     user: str | None
+    permission: Roles
