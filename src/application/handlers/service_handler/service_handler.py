@@ -12,7 +12,8 @@ from application.indexes.rag_index import RagIndex
 from application.models import ServiceModel, OrganizationModel, OfferModel
 from application.schemas.service_schemas.request_schema import AddServiceRequestSchema, FilterServiceRequestSchema, \
     AddOffersRequestSchema
-from application.schemas.service_schemas.response_schema import ManipulateServiceResponseSchema
+from application.schemas.service_schemas.response_schema import ManipulateServiceResponseSchema, RagResponseSchema, \
+    RagResponseItemSchema
 from application.utils.get_location import get_location
 
 
@@ -88,15 +89,11 @@ class ServiceHandler:
             content = rag_document["_source"]["content"]
 
         offers = "\n".join([
-            f"- Offer Name: {offer.name}\n, Description: {offer.description}\n, Price: {offer.base_price} {offer.currency}\n"
-            for offer in offers
+            f"- Offer {idx+1}/{len(offers)} Car type: {offer.car_type} Description: {offer.description}\n, Price: {offer.base_price} {offer.currency}\n"
+            for idx, offer in enumerate(offers)
         ])
 
-        content = f"""
-            {content}
-            Offers:
-            {offers}
-        """
+        content = f"""{content}\n Offers:\n{offers}"""
 
         await RagIndex.create_document(
             document_id=service.service_id,
@@ -109,11 +106,7 @@ class ServiceHandler:
 
     @classmethod
     async def store_to_rag_idx(cls, service: ServiceModel):
-        content = f"""
-            Service Name: {service.name}\n
-            Description: {service.description}\n
-            Address: {service.original_full_address}\n
-        """
+        content = f"""Service Name: {service.name}\n\nDescription: {service.description}\n\nAddress: {service.original_full_address}\n"""
 
         await RagIndex.create_document(
             document_id=service.service_id,
@@ -128,14 +121,30 @@ class ServiceHandler:
 
     @classmethod
     async def rag_query(cls, question: str):
-        query_vector = cls.embedding(question)
-        res = await RagIndex.retrieve_by_query(query={"knn": {"embedding": {"vector": query_vector, "k": 1}}}, size=1)
-        score = res[0]["_score"] if res else 0
-        if not res or score < 0.75:
-            return "No relevant information found."
+        result = RagResponseSchema(data=[])
 
-        res = res[0]["_id"]
-        return res
+        query_vector = cls.embedding(question)
+        res = await RagIndex.retrieve_by_query(query={"knn": {"embedding": {"vector": query_vector, "k": 5}}}, size=5)
+
+        for doc in res:
+            score = doc["_score"]
+            if score < 0.75:
+                continue
+
+            result.data.append(RagResponseItemSchema(
+                service_id=doc["_id"],
+                content=doc["_source"]["content"],
+                score=score
+            ))
+
+        if not result.data:
+            result.data.append(RagResponseItemSchema(
+                service_id=None,
+                content="No relevant service found.",
+                score=0.0
+            ))
+
+        return result.model_dump()
 
     @classmethod
     def embedding(cls, text: str):

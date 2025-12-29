@@ -14,7 +14,7 @@ class OfferModel(Base):
     __tablename__ = "offers"
 
     offer_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name: Mapped[OfferType] = mapped_column(Enum(OfferType, length=50, native_enum=False), nullable=False, index=True)
+    offer_type: Mapped[OfferType] = mapped_column(Enum(OfferType, length=50, native_enum=False), nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     car_type: Mapped[CarType] = mapped_column(Enum(CarType, length=50, native_enum=False), nullable=False, index=True)
     currency: Mapped[Currency] = mapped_column(Enum(Currency, length=20, native_enum=False), nullable=False, index=True)
@@ -26,5 +26,3 @@ class OfferModel(Base):
     updated_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time()))
 
     services: Mapped["ServiceModel"] = relationship("ServiceModel", back_populates="offers")
-
-    __table_args__ = (UniqueConstraint("service_id", "name", "car_type", name="uq_service_id_name_and_car_type"),)

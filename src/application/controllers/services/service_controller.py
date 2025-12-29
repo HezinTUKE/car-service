@@ -19,6 +19,7 @@ from application.schemas.service_schemas.response_schema import (
     OrganizationItemsResponseSchema,
     ManipulateServiceResponseSchema,
     ServiceItemsResponseSchema,
+    RagResponseSchema,
 )
 from application.utils.password_utils import permission_required
 
@@ -80,9 +81,8 @@ class ServiceController:
         return await ServiceHandler.add_offers(offer_schema=request_schema, session=session)
 
     @staticmethod
-    @router.get("/ai-query")
+    @router.get("/ai-query", response_model=RagResponseSchema)
     async def ai_query(
             question: str,
     ):
-        res = await ServiceHandler.rag_query(question=question)
-        return {"response": res}
+        return await ServiceHandler.rag_query(question=question)

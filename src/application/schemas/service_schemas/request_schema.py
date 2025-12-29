@@ -43,7 +43,7 @@ class FilterServiceRequestSchema(FilterOrganizationRequestSchema):
 
 
 class OfferSchema(BaseModel):
-    name: OfferType
+    offer_type: OfferType
     description: str = Field(..., min_length=10)
     car_type: CarType
     currency: Currency
