@@ -12,6 +12,7 @@ from application.schemas.service_schemas.request_schema import (
     FilterOrganizationRequestSchema,
     AddServiceRequestSchema,
     FilterServiceRequestSchema,
+    AddOffersRequestSchema,
 )
 from application.schemas.service_schemas.response_schema import (
     ManipulateOrganizationResponseSchema,
@@ -55,7 +56,7 @@ class ServiceController:
     @staticmethod
     @router.post("/add-service", response_model=ManipulateServiceResponseSchema)
     async def add_service(
-        request_schema: AddServiceRequestSchema,
+        request_schema: AddServiceRequestSchema = Body(...),
         current_user: JwtDC = Depends(permission_required((Roles.MASTER, Roles.USER))),
         session: AsyncSession = Depends(DBModel.get_session),
     ):
@@ -68,3 +69,20 @@ class ServiceController:
         session: AsyncSession = Depends(DBModel.get_session),
     ):
         return await OrganizationHandler.get_services(service_filter, session)
+
+    @staticmethod
+    @router.post("/add-offers", response_model=ManipulateServiceResponseSchema)
+    async def add_offers(
+        request_schema: AddOffersRequestSchema = Body(...),
+        _: JwtDC = Depends(permission_required((Roles.MASTER, Roles.USER))),
+        session: AsyncSession = Depends(DBModel.get_session),
+    ):
+        return await ServiceHandler.add_offers(offer_schema=request_schema, session=session)
+
+    @staticmethod
+    @router.get("/ai-query")
+    async def ai_query(
+            question: str,
+    ):
+        res = await ServiceHandler.rag_query(question=question)
+        return {"response": res}

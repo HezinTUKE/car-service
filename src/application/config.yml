@@ -1,3 +1,5 @@
+environment: DEV
+
 database:
   username: test_username
   password: test_password
@@ -14,6 +16,12 @@ security:
   algorithm: HS256
   token_expire: 25  # in minutes
   refresh_token_expire: 20  # in minutes
+
+opensearch:
+  host: "localhost"
+  port: 9200
+  username: admin
+  password: opensearch_Admin123
 
 redis:
   host: localhost

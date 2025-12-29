@@ -18,6 +18,7 @@ packages = [
 python = ">=3.11,<3.12"
 alembic = "^1.16.1"
 asyncpg = "^0.30.0"
+requests = "^2.32.5"
 greenlet = "^3.2.3"
 sqlalchemy = "^2.0.44"
 psycopg2-binary = "^2.9.10"
@@ -31,6 +32,7 @@ python-multipart = "^0.0.20"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 passlib = {extras = ["argon2"], version = "^1.7.4"}
 redis = "^7.1.0"
+opensearch-py = "^3.1.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.3"

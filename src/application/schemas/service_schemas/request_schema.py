@@ -1,12 +1,18 @@
+from decimal import Decimal
+from uuid import UUID
+
 from pydantic import Field, BaseModel, EmailStr
 
+from application.enums.services.car_types import CarType
 from application.enums.services.country import Country
+from application.enums.services.currency import Currency
+from application.enums.services.offer_types import OfferType
 from application.schemas.service_schemas.schema_types import PhoneNumber, IdentificationNumber
 
 
 class AddOrganizationRequestSchema(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
-    description: str = Field(..., min_length=10, max_length=1000)
+    description: str = Field(..., min_length=10)
     country: Country = Field(default=Country.SLOVAKIA)
     city: str = Field(..., min_length=2, max_length=100)
     street: str = Field(..., min_length=2, max_length=100)
@@ -18,7 +24,7 @@ class AddOrganizationRequestSchema(BaseModel):
 
 
 class FilterOrganizationRequestSchema(BaseModel):
-    organization_id: str | None = Field(default=None, min_length=1, max_length=100)
+    organization_id: UUID
     name: str | None = Field(default=None, min_length=2, max_length=100)
     country: Country | None = Field(default=None)
     city: str | None = Field(default=None, min_length=2, max_length=100)
@@ -29,8 +35,23 @@ class FilterOrganizationRequestSchema(BaseModel):
 
 
 class AddServiceRequestSchema(AddOrganizationRequestSchema):
-    organization_id: str | None = Field(None, min_length=1, max_length=100)
+    organization_id: UUID | None = Field(default=None)
 
 
 class FilterServiceRequestSchema(FilterOrganizationRequestSchema):
-    service_id: str | None = Field(default=None, min_length=1, max_length=100)
+    service_id: UUID | None = Field(default=None)
+
+
+class OfferSchema(BaseModel):
+    name: OfferType
+    description: str = Field(..., min_length=10)
+    car_type: CarType
+    currency: Currency
+    base_price: Decimal = Field(..., gt=0)
+    sale: int = Field(default=0, ge=0, le=100)
+    estimated_duration_minutes: int = Field(..., gt=0)
+
+
+class AddOffersRequestSchema(BaseModel):
+    service_id: UUID
+    offers: list[OfferSchema] = Field(..., min_length=1, max_length=50)

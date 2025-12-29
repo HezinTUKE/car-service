@@ -1,12 +1,17 @@
 import traceback
+import uuid
 
 from fastapi import HTTPException, status
 from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from requests import post
 
-from application.models import ServiceModel, OrganizationModel
-from application.schemas.service_schemas.request_schema import AddServiceRequestSchema, FilterServiceRequestSchema
+from application.enums.services.rag_source import RagSource
+from application.indexes.rag_index import RagIndex
+from application.models import ServiceModel, OrganizationModel, OfferModel
+from application.schemas.service_schemas.request_schema import AddServiceRequestSchema, FilterServiceRequestSchema, \
+    AddOffersRequestSchema
 from application.schemas.service_schemas.response_schema import ManipulateServiceResponseSchema
 from application.utils.get_location import get_location
 
@@ -36,13 +41,109 @@ class ServiceHandler:
         try:
             service_model = ServiceModel(
                 **service_schema.model_dump(),
+                service_id=str(uuid.uuid4()),
                 owner=user_id,
                 longitude=location.longitude,
                 latitude=location.latitude,
                 original_full_address=location.address
             )
             session.add(service_model)
+            await ServiceHandler.store_to_rag_idx(service_model)
             return ManipulateServiceResponseSchema(status=True, msg="Service added").model_dump()
         except Exception:
             traceback.print_exc()
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
+
+    @classmethod
+    async def add_offers(cls, offer_schema: AddOffersRequestSchema, session: AsyncSession):
+        service_id = offer_schema.service_id
+
+        service_query = select(ServiceModel).filter(ServiceModel.service_id == service_id)
+        service_query_res = await session.execute(service_query)
+        service_model = service_query_res.scalar_one_or_none()
+
+        if not service_model:
+            return ManipulateServiceResponseSchema(status=False, msg="Service doesn't exist").model_dump()
+
+        try:
+            offers = []
+            for offer_schema in offer_schema.offers:
+                offer_model = OfferModel(**offer_schema.model_dump(), service_id=str(service_id))
+                session.add(offer_model)
+                offers.append(offer_model)
+
+            await cls.update_rag_idx(service_model, offers)
+            return ManipulateServiceResponseSchema(status=True, msg="Offer added").model_dump()
+        except Exception:
+            traceback.print_exc()
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
+
+    @classmethod
+    async def update_rag_idx(cls, service: ServiceModel, offers: [OfferModel]):
+        rag_document = await RagIndex.retrieve_by_id(service.service_id)
+
+        if not rag_document:
+            content = await cls.store_to_rag_idx(service)
+        else:
+            content = rag_document["_source"]["content"]
+
+        offers = "\n".join([
+            f"- Offer Name: {offer.name}\n, Description: {offer.description}\n, Price: {offer.base_price} {offer.currency}\n"
+            for offer in offers
+        ])
+
+        content = f"""
+            {content}
+            Offers:
+            {offers}
+        """
+
+        await RagIndex.create_document(
+            document_id=service.service_id,
+            document_body={
+                "content": content,
+                "embedding": cls.embedding(content),
+                "source": RagSource.POSTGRESQL.value,
+            },
+        )
+
+    @classmethod
+    async def store_to_rag_idx(cls, service: ServiceModel):
+        content = f"""
+            Service Name: {service.name}\n
+            Description: {service.description}\n
+            Address: {service.original_full_address}\n
+        """
+
+        await RagIndex.create_document(
+            document_id=service.service_id,
+            document_body={
+                "content": content,
+                "embedding": cls.embedding(content),
+                "source": RagSource.POSTGRESQL.value
+            }
+        )
+
+        return content
+
+    @classmethod
+    async def rag_query(cls, question: str):
+        query_vector = cls.embedding(question)
+        res = await RagIndex.retrieve_by_query(query={"knn": {"embedding": {"vector": query_vector, "k": 1}}}, size=1)
+        score = res[0]["_score"] if res else 0
+        if not res or score < 0.75:
+            return "No relevant information found."
+
+        res = res[0]["_id"]
+        return res
+
+    @classmethod
+    def embedding(cls, text: str):
+        response = post(
+            url="http://localhost:11434/api/embeddings",
+            json={
+                "model": "nomic-embed-text",
+                "prompt": text
+            }
+        )
+        return response.json()["embedding"]

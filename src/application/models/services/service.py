@@ -1,7 +1,7 @@
 import time
 import uuid
 
-from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint, Float
+from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint, Float, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from application.enums.services.country import Country
@@ -14,7 +14,7 @@ class ServiceModel(Base):
     service_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     organization_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("organization.organization_id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    description: Mapped[str] = mapped_column(String, nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
 
     country: Mapped[Country] = mapped_column(Enum(Country, native_enum=False, length=50), nullable=False, index=True)
     city: Mapped[str] = mapped_column(String, nullable=False, index=True)
