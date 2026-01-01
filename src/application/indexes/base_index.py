@@ -28,9 +28,9 @@ class BaseIndex:
         return client.get(index=cls.index, id=index_id)
 
     @classmethod
-    async def retrieve_by_query(cls, query: dict, size: int = 10):
+    async def retrieve_by_query(cls, query: dict):
         client = await cls.get_client()
-        response = client.search(index=cls.index, body={"query": query, "size": size})
+        response = client.search(index=cls.index, body=query)
         return response.get('hits', {}).get('hits', [])
 
     @classmethod
@@ -49,6 +49,6 @@ class BaseIndex:
         helpers.bulk(client=client, actions=actions, index=cls.index)
 
     @classmethod
-    async def create_document(cls, document_id: str, document_body: dict):
+    async def create_or_update_document(cls, document_id: str, document_body: dict):
         client = await cls.get_client()
         client.index(index=cls.index, id=document_id, body=document_body)

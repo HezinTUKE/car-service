@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
-from application.models import ServiceModel
+from application.models import ServiceModel, OfferModel
 from application.models.services.organization import OrganizationModel
 from application.schemas.service_schemas.request_schema import (
     AddOrganizationRequestSchema,
@@ -21,6 +21,7 @@ from application.schemas.service_schemas.response_schema import (
     ServiceItem,
     ServiceItemsResponseSchema,
     ManipulateOrganizationResponseSchema,
+    OffersSchema,
 )
 from application.utils.get_location import get_location
 
@@ -128,8 +129,10 @@ class OrganizationHandler:
         if service_filter_dict:
             base_query = base_query.filter_by(**service_filter_dict)
 
-            if service_filter.organization_id:
-                base_query = base_query.options(selectinload(ServiceModel.organization))
+        base_query = base_query.options(
+            selectinload(ServiceModel.organization),
+            selectinload(ServiceModel.offers),
+        )
 
         total_count, services = await cls._get_entity_result(
             base_query=base_query,
@@ -159,6 +162,10 @@ class OrganizationHandler:
                     original_full_address=service.original_full_address,
                     organization_id=service.organization_id,
                     organization_name=service.organization.name if service.organization else None,
+                    offers=[
+                        OffersSchema.model_validate(offer).model_dump()
+                        for offer in service.offers
+                    ] if service.offers else [],
                 )
                 for service in services
             ],

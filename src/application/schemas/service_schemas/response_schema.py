@@ -1,4 +1,9 @@
-from pydantic import BaseModel, ConfigDict, Field
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field, computed_field
+
+from application.enums.services.car_types import CarType
+from application.enums.services.offer_types import OfferType
 
 
 class AddOrganizationResponseSchema(BaseModel):
@@ -34,7 +39,7 @@ class EntityItem(BaseModel):
 
 
 class OrganizationItem(EntityItem):
-    organization_id: str
+    organization_id: UUID
 
 
 class OrganizationItemsResponseSchema(BaseModel):
@@ -42,9 +47,32 @@ class OrganizationItemsResponseSchema(BaseModel):
     total: int
 
 
+class OffersSchema(BaseModel):
+    offer_id: UUID
+    offer_type: OfferType
+    description: str
+    car_type: CarType
+    base_price: float
+    sale: int
+    currency: str
+    estimated_duration_minutes: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @computed_field
+    @property
+    def current_price(self) -> float:
+        if self.sale and self.sale > 0:
+            discount = (self.sale / 100) * self.base_price
+            return round(self.base_price - discount, 2)
+        return self.base_price
+
+
+
 class ServiceItem(EntityItem):
-    service_id: str
-    organization_id: str | None = Field(default=None)
+    service_id: UUID
+    offers: list[OffersSchema] = Field(default=list)
+    organization_id: UUID | None = Field(default=None)
     organization_name: str | None = Field(default=None)
 
 
@@ -54,7 +82,7 @@ class ServiceItemsResponseSchema(BaseModel):
 
 
 class RagResponseItemSchema(BaseModel):
-    service_id: str | None
+    service_id: UUID | None
     content: str
     score: float
 

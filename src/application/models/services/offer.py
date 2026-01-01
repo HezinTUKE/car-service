@@ -25,4 +25,4 @@ class OfferModel(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time()))
 
-    services: Mapped["ServiceModel"] = relationship("ServiceModel", back_populates="offers")
+    services: Mapped["ServiceModel"] = relationship("ServiceModel", back_populates="offers", lazy="selectin")

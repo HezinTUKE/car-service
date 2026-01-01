@@ -24,7 +24,7 @@ class AddOrganizationRequestSchema(BaseModel):
 
 
 class FilterOrganizationRequestSchema(BaseModel):
-    organization_id: UUID
+    organization_id: UUID | None = Field(default=None)
     name: str | None = Field(default=None, min_length=2, max_length=100)
     country: Country | None = Field(default=None)
     city: str | None = Field(default=None, min_length=2, max_length=100)

@@ -35,7 +35,7 @@ class ServiceModel(Base):
         Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time())
     )
 
-    organization: Mapped["OrganizationModel"] = relationship("OrganizationModel", back_populates="services", lazy="joined")
+    organization: Mapped["OrganizationModel"] = relationship("OrganizationModel", back_populates="services", lazy="selectin")
     offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services")
 
     __table_args__ = (UniqueConstraint("name", "identification_number", name="uq_identification_number_name"),)

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from application.controllers import SERVICE_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
+from application.handlers.rag_handler import RagHandler
 from application.handlers.service_handler.organization_handler import OrganizationHandler
 from application.handlers.service_handler.service_handler import ServiceHandler
 from application.models.base import DBModel
@@ -85,4 +86,4 @@ class ServiceController:
     async def ai_query(
             question: str,
     ):
-        return await ServiceHandler.rag_query(question=question)
+        return await RagHandler.rag_query(question=question)

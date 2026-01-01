@@ -1,0 +1,10 @@
+from enum import Enum
+
+
+class FuncMetadata(Enum):
+    INFO = "INFO"
+    CHEAPEST = "CHEAPEST"
+    MOST_EXPENSIVE = "MOST_EXPENSIVE"
+    COMPARE = "COMPARE"
+    AVAILABILITY = "AVAILABILITY"
+    MAX_DISTANCE = "MAX_DISTANCE"
