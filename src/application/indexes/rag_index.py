@@ -27,9 +27,15 @@ class RagIndex(BaseIndex):
                         "sale": {"type": "integer"},
                         "currency": {"type": "keyword"},
                         "offer_type": {"type": "keyword"},
-                        "car_type": {"type": "keyword"},
-                    }
-                }
+                        "car_compatibilities": {
+                            "type": "nested",
+                            "properties": {
+                                "car_type": {"type": "keyword"},
+                                "car_brand": {"type": "keyword"},
+                            },
+                        }
+                    },
+                },
             }
-        }
+        },
     }

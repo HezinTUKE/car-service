@@ -3,9 +3,9 @@ from enum import Enum
 
 class OfferType(Enum):
     # General services
-    MAINTENANCE = "MAINTENANCE"              # Regular servicing, inspections
-    REPAIR = "REPAIR"                        # General mechanical repairs
-    DIAGNOSTICS = "DIAGNOSTICS"              # Computer & manual diagnostics
+    MAINTENANCE = "MAINTENANCE"  # Regular servicing, inspections
+    REPAIR = "REPAIR"  # General mechanical repairs
+    DIAGNOSTICS = "DIAGNOSTICS"  # Computer & manual diagnostics
 
     # Engine & drivetrain
     ENGINE_REPAIR = "ENGINE_REPAIR"
@@ -14,7 +14,7 @@ class OfferType(Enum):
     TIMING_BELT_REPLACEMENT = "TIMING_BELT_REPLACEMENT"
 
     # Brakes & suspension
-    BRAKE_SERVICE = "BRAKE_SERVICE"          # Pads, discs, fluid
+    BRAKE_SERVICE = "BRAKE_SERVICE"  # Pads, discs, fluid
     SUSPENSION_REPAIR = "SUSPENSION_REPAIR"  # Shocks, struts, bushings
     STEERING_REPAIR = "STEERING_REPAIR"
 

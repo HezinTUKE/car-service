@@ -68,7 +68,6 @@ class OffersSchema(BaseModel):
         return self.base_price
 
 
-
 class ServiceItem(EntityItem):
     service_id: UUID
     offers: list[OffersSchema] = Field(default=list)

@@ -1,8 +1,11 @@
 import json
+from collections import defaultdict
+from pickle import compatible_formats
 
 from requests import post
 from application.dataclasses.rag.question_metadata_dc import QuestionMetadataDc
 from application.dataclasses.rag.rag_os_filter import *
+from application.dataclasses.services.offer_cars_relation_dc import OfferCarRelationsListDC
 from application.dataclasses.services.user_point import UserPoint
 from application.enums.services.metadata import FuncMetadata
 from application.enums.services.rag_source import RagSource
@@ -26,21 +29,13 @@ class RagUtils:
 
         for doc in res:
             score = doc["_score"]
-            if score < 0.70:
+            if score and score < 0.70:
                 continue
 
-            result.data.append(RagResponseItemSchema(
-                service_id=doc["_id"],
-                content=doc["_source"]["content"],
-                score=score
-            ))
+            result.data.append(RagResponseItemSchema(service_id=doc["_id"], content=doc["_source"]["content"], score=score or 100))
 
         if not result.data:
-            result.data.append(RagResponseItemSchema(
-                service_id=None,
-                content="No relevant service found.",
-                score=0.0
-            ))
+            result.data.append(RagResponseItemSchema(service_id=None, content="No relevant service found.", score=0.0))
 
         return result.model_dump()
 
@@ -54,7 +49,7 @@ class RagUtils:
                 knn=RagKNNFilter(
                     embedding=RagEmbeddingFilter(
                         vector=query_vector,
-                        k=5,
+                        k=30,
                     )
                 )
             )
@@ -62,36 +57,23 @@ class RagUtils:
 
         if (question_metadata.max_distance or question_metadata.func == FuncMetadata.MAX_DISTANCE) and user_point:
             query_body.query.bool.filter.geo_distance = RagGeoDistanceAttrsFilter(
-                distance=f"{question_metadata.max_distance}km",
-                point={
-                    "lat": user_point.latitude,
-                    "lon": user_point.longitude
-                }
+                distance=f"{question_metadata.max_distance}km", point={"lat": user_point.latitude, "lon": user_point.longitude}
             )
 
         if question_metadata.country:
-            query_body.query.bool.filter.append(
-                RagBoolOsAttrsFilter(
-                    term={"country": question_metadata.country.name}
-                )
-            )
+            query_body.query.bool.filter.append(RagBoolOsAttrsFilter(term={"country": question_metadata.country.name}))
 
         if question_metadata.city:
-            query_body.query.bool.filter.append(
-                RagBoolOsAttrsFilter(
-                    term={"city": question_metadata.city}
-                )
-            )
+            query_body.query.bool.filter.append(RagBoolOsAttrsFilter(term={"city": question_metadata.city}))
 
         if question_metadata.offer_type:
-            query_body.query.bool.nested = RagNestedTermFilter(
-                term={"offers.offer_type": question_metadata.offer_type.name}
-            )
+            query_body.query.bool.nested = RagNestedTermFilter(term={"offers.offer_type": question_metadata.offer_type.name})
+
+        if question_metadata.offer_type:
+            query_body.query.bool.nested = RagNestedTermFilter(term={"offers.offer_type": question_metadata.offer_type.name})
 
         if question_metadata.max_price:
-            query_body.query.bool.nested = RagNestedTermFilter(
-                term={"offers.base_price": {"lte": question_metadata.max_price}}
-            )
+            query_body.query.bool.nested = RagNestedTermFilter(term={"offers.base_price": {"lte": question_metadata.max_price}})
 
         if question_metadata.func == FuncMetadata.CHEAPEST:
             query_body.sort.append(
@@ -100,7 +82,13 @@ class RagUtils:
                         "order": "asc",
                         "mode": "min",
                         "nested": {
-                            "path": "offers"
+                            "path": "offers",
+                            "filter":
+                                {
+                                    "term": {
+                                        "offers.offer_type": question_metadata.offer_type.name
+                                    }
+                                }
                         }
                     }
                 }
@@ -126,22 +114,15 @@ class RagUtils:
 
     @classmethod
     def embedding(cls, text: str):
-        response = post(
-            url="http://localhost:11434/api/embeddings",
-            json={
-                "model": "nomic-embed-text",
-                "prompt": text
-            }
-        )
+        response = post(url="http://localhost:11434/api/embeddings", json={"model": "nomic-embed-text", "prompt": text})
         return response.json()["embedding"]
 
     @classmethod
     def question_understanding(cls, question: str):
-        request = post("http://localhost:11434/api/generate", json={
-            "model": "llama3:8b",
-            "prompt": f"{extract_question_data_prompt}\nQuestion: {question}",
-            "stream": False
-        })
+        request = post(
+            "http://localhost:11434/api/generate",
+            json={"model": "llama3:8b", "prompt": f"{extract_question_data_prompt}\nQuestion: {question}", "stream": False},
+        )
 
         if request.status_code != 200:
             return None
@@ -150,15 +131,25 @@ class RagUtils:
         return json.loads(res)
 
     @classmethod
-    async def update_or_create_rag_idx(cls, service: ServiceModel, offers: [OfferModel]):
+    async def update_or_create_rag_idx(cls, offer_service_relation: OfferCarRelationsListDC):
+        service = offer_service_relation.service_model
+        relations = offer_service_relation.offer_car_relations
         content = f"""Service Name: {service.name}\n\nDescription: {service.description}\n\nAddress: {service.original_full_address}\n"""
 
-        offers_content = "\n".join([
-            f"- Offer {idx+1}/{len(offers)} Car type: {offer.car_type.name} Description: {offer.description}\n, Price: {offer.base_price} {offer.currency}\n"
-            for idx, offer in enumerate(offers)
-        ])
+        if relations:
+            content += f"Offers:\n"
 
-        content = f"""{content}\n Offers:\n{offers_content}"""
+        for idx, relation in enumerate(relations):
+            offer_content = f"- Offer {idx+1}/{len(relations)}:\n Offer type: {relation.offer.offer_type.name}\n Description: {relation.offer.description}\n, Price: {relation.offer.base_price} {relation.offer.currency.name}\n"
+            compatible_dict = defaultdict(list)
+
+            for car_relation in relation.car_compatibility_models:
+                compatible_dict[car_relation.car_type.name].append(car_relation.car_brand.name)
+
+            compatible_content = "\n".join(f"""Car type: {key}, Car Brands: {",".join(brands)}""" for key, brands in compatible_dict.items())
+            offer_content += f"Compatible Cars:\n {compatible_content}\n\n"
+
+            content += offer_content
 
         await RagIndex.create_or_update_document(
             document_id=service.service_id,
@@ -176,10 +167,17 @@ class RagUtils:
                         "sale": offer.sale,
                         "currency": offer.currency.name,
                         "offer_type": offer.offer_type.name,
-                        "car_type": offer.car_type.name,
-                    } for offer in offers
-                ]
-            }
+                        "car_compatibilities": [
+                            {
+                                "car_type": car_relation.car_type.name,
+                                "car_brand": car_relation.car_brand.name,
+                            }
+                            for car_relation in offer_service_relation.get_car_compatibility_models() if car_relation.offer_id == offer.offer_id
+                        ],
+                    }
+                    for offer in offer_service_relation.get_offers() if offer
+                ],
+            },
         )
 
     @classmethod
@@ -187,12 +185,8 @@ class RagUtils:
         empty_values = (None, {}, [], "")
 
         if isinstance(obj, dict):
-            return {
-                k: cls.dict_cleaner(v) for k, v in obj.items() if cls.dict_cleaner(v) not in empty_values
-            }
+            return {k: cls.dict_cleaner(v) for k, v in obj.items() if cls.dict_cleaner(v) not in empty_values}
         if isinstance(obj, list):
-            return [
-                cls.dict_cleaner(v) for v in obj if cls.dict_cleaner(v) not in empty_values
-            ]
+            return [cls.dict_cleaner(v) for v in obj if cls.dict_cleaner(v) not in empty_values]
 
         return obj

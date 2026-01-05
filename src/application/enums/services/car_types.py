@@ -45,3 +45,5 @@ class CarType(Enum):
     # Two & three wheelers (optional, remove if not needed)
     MOTORCYCLE = "MOTORCYCLE"
     SCOOTER = "SCOOTER"
+
+    ALL = "ALL"

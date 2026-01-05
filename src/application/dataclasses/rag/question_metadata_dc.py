@@ -11,10 +11,10 @@ from application.enums.services.offer_types import OfferType
 @dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class QuestionMetadataDc(DataClassJsonMixin):
-    country: Country | None
-    city: str | None
-    offer_type: OfferType | None
-    func: FuncMetadata | None
-    max_price: float | None
-    max_distance: float | None
-    currency: Currency | None
+    offer_type: OfferType
+    country: Country
+    city: str | None = None
+    func: FuncMetadata | None = None
+    max_price: float | None = None
+    max_distance: float | None = None
+    currency: Currency | None = None

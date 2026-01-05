@@ -6,8 +6,9 @@ from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from application.models import ServiceModel, OrganizationModel, OfferModel
-from application.schemas.service_schemas.request_schema import AddServiceRequestSchema, AddOffersRequestSchema
+from application.dataclasses.services.offer_cars_relation_dc import OfferCarRelationsListDC, OfferCarRelationDC
+from application.models import ServiceModel, OrganizationModel, OfferModel, OfferCarCompatibilityModel
+from application.schemas.service_schemas.request_schema import AddServiceRequestSchema, AddOffersRequestSchema, CarCompatibilitySchema
 from application.schemas.service_schemas.response_schema import ManipulateServiceResponseSchema
 from application.utils.get_location import get_location
 from application.utils.rag_utils import RagUtils
@@ -38,7 +39,6 @@ class ServiceHandler:
         try:
             service_model = ServiceModel(
                 **service_schema.model_dump(),
-                service_id=str(uuid.uuid4()),
                 owner=user_id,
                 longitude=location.longitude,
                 latitude=location.latitude,
@@ -62,13 +62,25 @@ class ServiceHandler:
             return ManipulateServiceResponseSchema(status=False, msg="Service doesn't exist").model_dump()
 
         try:
-            offers = []
-            for offer_schema in offer_schema.offers:
-                offer_model = OfferModel(**offer_schema.model_dump(), service_id=str(service_id))
-                session.add(offer_model)
-                offers.append(offer_model)
+            relations = OfferCarRelationsListDC(
+                service_model=service_model
+            )
 
-            await RagUtils.update_or_create_rag_idx(service_model, offers)
+            for offer_schema in offer_schema.offers:
+                offer_id = str(uuid.uuid4())
+                offer_model = OfferModel(**offer_schema.model_dump(), service_id=str(service_id), offer_id=offer_id)
+
+                offer_car_relation = OfferCarRelationDC(offer=offer_model)
+
+                offer_car_relation.car_compatibility_models = [
+                    OfferCarCompatibilityModel(**compatibility.model_dump(), offer_id=offer_id)
+                    for compatibility in offer_schema.offer_car_compatibility
+                ]
+
+            session.add_all(relations.get_offers())
+            session.add_all(relations.get_car_compatibility_models())
+
+            await RagUtils.update_or_create_rag_idx(relations)
             return ManipulateServiceResponseSchema(status=True, msg="Offer added").model_dump()
         except Exception:
             traceback.print_exc()

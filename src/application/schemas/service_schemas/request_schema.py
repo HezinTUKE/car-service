@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import Field, BaseModel, EmailStr
 
+from application.enums.services.car_brands import CarBrands
 from application.enums.services.car_types import CarType
 from application.enums.services.country import Country
 from application.enums.services.currency import Currency
@@ -42,14 +43,19 @@ class FilterServiceRequestSchema(FilterOrganizationRequestSchema):
     service_id: UUID | None = Field(default=None)
 
 
+class CarCompatibilitySchema(BaseModel):
+    car_type: CarType
+    car_brand: CarBrands
+
+
 class OfferSchema(BaseModel):
     offer_type: OfferType
     description: str = Field(..., min_length=10)
-    car_type: CarType
     currency: Currency
     base_price: Decimal = Field(..., gt=0)
     sale: int = Field(default=0, ge=0, le=100)
     estimated_duration_minutes: int = Field(..., gt=0)
+    offer_car_compatibility: list[CarCompatibilitySchema] = Field(..., min_length=1, exclude=True)
 
 
 class AddOffersRequestSchema(BaseModel):

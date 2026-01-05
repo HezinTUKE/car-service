@@ -16,9 +16,15 @@ class BaseIndex:
         password = cls.opensearch_config["password"]
         username = cls.opensearch_config["username"]
 
-        kwargs = {"hosts": [{'host': host, 'port': port}], "http_compress": True,
-                  "use_ssl": cls.opensearch_config.get("use_ssl", True), "verify_certs": False,
-                  "ssl_assert_hostname": False, "ssl_show_warn": False, "http_auth": (username, password)}
+        kwargs = {
+            "hosts": [{"host": host, "port": port}],
+            "http_compress": True,
+            "use_ssl": cls.opensearch_config.get("use_ssl", True),
+            "verify_certs": False,
+            "ssl_assert_hostname": False,
+            "ssl_show_warn": False,
+            "http_auth": (username, password),
+        }
 
         return OpenSearch(**kwargs)
 
@@ -31,7 +37,7 @@ class BaseIndex:
     async def retrieve_by_query(cls, query: dict):
         client = await cls.get_client()
         response = client.search(index=cls.index, body=query)
-        return response.get('hits', {}).get('hits', [])
+        return response.get("hits", {}).get("hits", [])
 
     @classmethod
     async def create_index(cls):

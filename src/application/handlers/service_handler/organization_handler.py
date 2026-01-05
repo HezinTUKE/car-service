@@ -162,10 +162,7 @@ class OrganizationHandler:
                     original_full_address=service.original_full_address,
                     organization_id=service.organization_id,
                     organization_name=service.organization.name if service.organization else None,
-                    offers=[
-                        OffersSchema.model_validate(offer).model_dump()
-                        for offer in service.offers
-                    ] if service.offers else [],
+                    offers=[OffersSchema.model_validate(offer).model_dump() for offer in service.offers] if service.offers else [],
                 )
                 for service in services
             ],

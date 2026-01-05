@@ -6,7 +6,7 @@ from dataclasses_json import dataclass_json, DataClassJsonMixin, Undefined
 @dataclass
 class RagEmbeddingFilter(DataClassJsonMixin):
     vector: list[float] = field(default_factory=list)
-    k: int = 3
+    k: int = 30
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)

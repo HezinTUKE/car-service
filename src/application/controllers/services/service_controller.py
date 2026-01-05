@@ -84,6 +84,6 @@ class ServiceController:
     @staticmethod
     @router.get("/ai-query", response_model=RagResponseSchema)
     async def ai_query(
-            question: str,
+        question: str,
     ):
         return await RagHandler.rag_query(question=question)
