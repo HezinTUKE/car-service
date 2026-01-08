@@ -96,7 +96,9 @@ class OrganizationHandler:
         return total_count, entities
 
     @classmethod
-    async def get_organizations(cls, filter_model: FilterOrganizationRequestSchema, session: AsyncSession) -> dict[str, any]:
+    async def get_organizations(
+        cls, filter_model: FilterOrganizationRequestSchema, session: AsyncSession
+    ) -> dict[str, any]:
         try:
             filter_model_dict = filter_model.model_dump(exclude_none=True)
             limit = filter_model_dict.pop("per_page", 10)
@@ -109,7 +111,12 @@ class OrganizationHandler:
                 base_query = select(OrganizationModel).filter_by(**filter_model_dict)
 
             total_count, organizations = await cls._get_entity_result(
-                base_query=base_query, filter_dict=filter_model_dict, model=OrganizationModel, limit=limit, offset=offset, session=session
+                base_query=base_query,
+                filter_dict=filter_model_dict,
+                model=OrganizationModel,
+                limit=limit,
+                offset=offset,
+                session=session,
             )
 
             return {"data": [OrganizationItem.model_validate(org) for org in organizations], "total": total_count}
@@ -162,7 +169,11 @@ class OrganizationHandler:
                     original_full_address=service.original_full_address,
                     organization_id=service.organization_id,
                     organization_name=service.organization.name if service.organization else None,
-                    offers=[OffersSchema.model_validate(offer).model_dump() for offer in service.offers] if service.offers else [],
+                    offers=(
+                        [OffersSchema.model_validate(offer).model_dump() for offer in service.offers]
+                        if service.offers
+                        else []
+                    ),
                 )
                 for service in services
             ],

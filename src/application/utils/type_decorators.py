@@ -123,7 +123,10 @@ class EnumAsVarchar(TypeDecorator):
                 return inspected_type.length == expected_length
 
             # If we can't compare lengths, assume they're the same type family
-            return str(type(inspected_type)).lower().find("string") != -1 or str(type(inspected_type)).lower().find("varchar") != -1
+            return (
+                str(type(inspected_type)).lower().find("string") != -1
+                or str(type(inspected_type)).lower().find("varchar") != -1
+            )
 
         # Not our type, let other handlers deal with it
         return None

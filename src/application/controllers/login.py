@@ -16,10 +16,7 @@ class LoginController:
 
     @staticmethod
     @router.post(path="/logout", response_model=AuthMethodsResponseSchema)
-    async def logout(
-            request: Request,
-            current_user: JwtDC = Depends(get_current_user)
-    ):
+    async def logout(request: Request, current_user: JwtDC = Depends(get_current_user)):
         return await LoginHandler.logout(request, current_user)
 
     @staticmethod
@@ -43,18 +40,12 @@ class LoginController:
 
     @staticmethod
     @router.post(path="/refresh", response_model=AuthMethodsResponseSchema)
-    async def refresh_token(
-        request: Request
-    ):
+    async def refresh_token(request: Request):
         return await LoginHandler.refresh_token(request)
 
     @staticmethod
     @router.get(path="/profile", response_model=ProfileResponseSchema)
-    async def get_profile(
-        current_user: JwtDC = Depends(get_current_user)
-    ):
+    async def get_profile(current_user: JwtDC = Depends(get_current_user)):
         return ProfileResponseSchema(
-            username=current_user.username,
-            permission=current_user.permission,
-            user_id=current_user.user_id
+            username=current_user.username, permission=current_user.permission, user_id=current_user.user_id
         )

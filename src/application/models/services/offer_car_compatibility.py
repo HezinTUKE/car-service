@@ -11,10 +11,16 @@ from application.models.base import Base
 class OfferCarCompatibilityModel(Base):
     __tablename__ = "offer_car_compatibility"
 
-    offer_car_compatibility_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
-    offer_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("offers.offer_id"), nullable=False, index=True)
+    offer_car_compatibility_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    offer_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("offers.offer_id"), nullable=False, index=True
+    )
     car_type: Mapped[CarType] = mapped_column(Enum(CarType, length=50, native_enum=False), nullable=False, index=True)
-    car_brand: Mapped[CarBrands] = mapped_column(Enum(CarBrands, length=50, native_enum=False), nullable=False, index=True)
+    car_brand: Mapped[CarBrands] = mapped_column(
+        Enum(CarBrands, length=50, native_enum=False), nullable=False, index=True
+    )
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(
         Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time())

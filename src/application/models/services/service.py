@@ -12,7 +12,9 @@ class ServiceModel(Base):
     __tablename__ = "services"
 
     service_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
-    organization_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("organization.organization_id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("organization.organization_id"), nullable=True, index=True
+    )
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)
 
@@ -35,7 +37,9 @@ class ServiceModel(Base):
         Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time())
     )
 
-    organization: Mapped["OrganizationModel"] = relationship("OrganizationModel", back_populates="services", lazy="selectin")
+    organization: Mapped["OrganizationModel"] = relationship(
+        "OrganizationModel", back_populates="services", lazy="selectin"
+    )
     offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services")
 
     __table_args__ = (UniqueConstraint("name", "identification_number", name="uq_identification_number_name"),)

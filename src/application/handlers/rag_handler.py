@@ -40,7 +40,8 @@ class RagHandler:
                 offer_car_relations_dc = OfferCarRelationsListDC(
                     service_model=service,
                     offer_car_relations=[
-                        OfferCarRelationDC(offer=offer, car_compatibility_models=offer.offer_car_compatibility) for offer in service.offers
+                        OfferCarRelationDC(offer=offer, car_compatibility_models=offer.offer_car_compatibility)
+                        for offer in service.offers
                     ],
                 )
                 await RagUtils.update_or_create_rag_idx(offer_car_relations_dc)

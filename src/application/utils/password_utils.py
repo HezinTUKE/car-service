@@ -9,9 +9,10 @@ from application import config
 from application.controllers import LOGIN_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
-from application.utils.redis_helper import RedisHelper
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/{LOGIN_CONTROLLER_PREFIX}/signin", refreshUrl=f"/{LOGIN_CONTROLLER_PREFIX}/refresh")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"/{LOGIN_CONTROLLER_PREFIX}/signin", refreshUrl=f"/{LOGIN_CONTROLLER_PREFIX}/refresh"
+)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 MAX_BCRYPT_LENGTH = 72
 

@@ -8,7 +8,11 @@ from sqlalchemy import select
 
 from application.dataclasses.services.offer_cars_relation_dc import OfferCarRelationsListDC, OfferCarRelationDC
 from application.models import ServiceModel, OrganizationModel, OfferModel, OfferCarCompatibilityModel
-from application.schemas.service_schemas.request_schema import AddServiceRequestSchema, AddOffersRequestSchema, CarCompatibilitySchema
+from application.schemas.service_schemas.request_schema import (
+    AddServiceRequestSchema,
+    AddOffersRequestSchema,
+    CarCompatibilitySchema,
+)
 from application.schemas.service_schemas.response_schema import ManipulateServiceResponseSchema
 from application.utils.get_location import get_location
 from application.utils.rag_utils import RagUtils
@@ -29,7 +33,9 @@ class ServiceHandler:
             return ManipulateServiceResponseSchema(status=False, msg="Address was not found")
 
         if service_schema.organization_id:
-            org_query = select(OrganizationModel).filter(OrganizationModel.organization_id == service_schema.organization_id)
+            org_query = select(OrganizationModel).filter(
+                OrganizationModel.organization_id == service_schema.organization_id
+            )
             org_query_res = await session.execute(org_query)
             org_model = org_query_res.scalar_one_or_none()
 

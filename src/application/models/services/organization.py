@@ -10,7 +10,9 @@ from application.models.base import Base
 class OrganizationModel(Base):
     __tablename__ = "organization"
 
-    organization_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
 

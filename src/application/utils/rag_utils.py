@@ -30,7 +30,9 @@ class RagUtils:
             if score and score < 0.70:
                 continue
 
-            result.data.append(RagResponseItemSchema(service_id=doc["_id"], content=doc["_source"]["content"], score=score or 100))
+            result.data.append(
+                RagResponseItemSchema(service_id=doc["_id"], content=doc["_source"]["content"], score=score or 100)
+            )
 
         if not result.data:
             result.data.append(RagResponseItemSchema(service_id=None, content="No relevant service found.", score=0.0))
@@ -38,7 +40,9 @@ class RagUtils:
         return result.model_dump()
 
     @classmethod
-    def generate_os_query(cls, question: str, question_metadata: QuestionMetadataDc, user_point: UserPoint = None) -> dict:
+    def generate_os_query(
+        cls, question: str, question_metadata: QuestionMetadataDc, user_point: UserPoint = None
+    ) -> dict:
         query_vector = cls.embedding(question)
 
         query_body = RagOsFilterRequestBody()
@@ -55,7 +59,8 @@ class RagUtils:
 
         if (question_metadata.max_distance or question_metadata.func == FuncMetadata.MAX_DISTANCE) and user_point:
             query_body.query.bool.filter.geo_distance = RagGeoDistanceAttrsFilter(
-                distance=f"{question_metadata.max_distance}km", point={"lat": user_point.latitude, "lon": user_point.longitude}
+                distance=f"{question_metadata.max_distance}km",
+                point={"lat": user_point.latitude, "lon": user_point.longitude},
             )
 
         if question_metadata.country:
@@ -65,10 +70,14 @@ class RagUtils:
             query_body.query.bool.filter.append(RagBoolOsAttrsFilter(term={"city": question_metadata.city}))
 
         if question_metadata.offer_type:
-            query_body.query.bool.nested = RagNestedTermFilter(term={"offers.offer_type": question_metadata.offer_type.name})
+            query_body.query.bool.nested = RagNestedTermFilter(
+                term={"offers.offer_type": question_metadata.offer_type.name}
+            )
 
         if question_metadata.max_price:
-            query_body.query.bool.nested = RagNestedTermFilter(term={"offers.base_price": {"lte": question_metadata.max_price}})
+            query_body.query.bool.nested = RagNestedTermFilter(
+                term={"offers.base_price": {"lte": question_metadata.max_price}}
+            )
 
         if question_metadata.func == FuncMetadata.CHEAPEST:
             query_body.sort.append(
@@ -76,7 +85,10 @@ class RagUtils:
                     "offers.base_price": {
                         "order": "asc",
                         "mode": "min",
-                        "nested": {"path": "offers", "filter": {"term": {"offers.offer_type": question_metadata.offer_type.name}}},
+                        "nested": {
+                            "path": "offers",
+                            "filter": {"term": {"offers.offer_type": question_metadata.offer_type.name}},
+                        },
                     }
                 }
             )
@@ -99,14 +111,20 @@ class RagUtils:
     @classmethod
     def embedding(cls, text: str):
         normalized_text = "".join(text.strip().strip())
-        response = post(url="http://localhost:11434/api/embeddings", json={"model": "nomic-embed-text", "prompt": normalized_text})
+        response = post(
+            url="http://localhost:11434/api/embeddings", json={"model": "nomic-embed-text", "prompt": normalized_text}
+        )
         return response.json()["embedding"]
 
     @classmethod
     def question_understanding(cls, question: str):
         request = post(
             "http://localhost:11434/api/generate",
-            json={"model": "llama3:8b", "prompt": f"{extract_question_data_prompt}\nQuestion: {question}", "stream": False},
+            json={
+                "model": "llama3:8b",
+                "prompt": f"{extract_question_data_prompt}\nQuestion: {question}",
+                "stream": False,
+            },
         )
 
         if request.status_code != 200:
