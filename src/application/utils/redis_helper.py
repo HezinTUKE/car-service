@@ -11,5 +11,8 @@ class RedisHelper:
     def revoke_token(self, jti: str):
         self.redis.set(jti, "", ex=config.security.token_expire)
 
-    def check_revoke(self, jti: str):
-        self.redis.get(jti)
+    def check_revoke(self, jti: str) -> bool:
+        revoked_token = self.redis.get(jti)
+        if revoked_token:
+            return True
+        return False

@@ -10,6 +10,7 @@ from application.controllers import LOGIN_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 
+
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"/{LOGIN_CONTROLLER_PREFIX}/signin", refreshUrl=f"/{LOGIN_CONTROLLER_PREFIX}/refresh"
 )

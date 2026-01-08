@@ -69,7 +69,12 @@ class LoginHandler:
         refresh_cookie = request.cookies.get("refresh_token")
         if not refresh_cookie:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token missing")
+
         current_user = get_current_user(refresh_cookie)
+        redis = RedisHelper()
+        if not redis.check_revoke(current_user.jti):
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token has been revoked")
+
         return cls._set_auth_tokens(
             sub=current_user.username, permission=current_user.permission, user_id=current_user.user_id
         )
