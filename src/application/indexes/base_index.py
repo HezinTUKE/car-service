@@ -4,22 +4,22 @@ from application import config
 
 
 class BaseIndex:
-    opensearch_config = config["opensearch"]
+    opensearch_config = config.opensearch
 
     index = ""
     __mapping__ = {}
 
     @classmethod
     async def get_client(cls) -> OpenSearch:
-        host = cls.opensearch_config["host"]
-        port = cls.opensearch_config["port"]
-        password = cls.opensearch_config["password"]
-        username = cls.opensearch_config["username"]
+        host = cls.opensearch_config.host
+        port = cls.opensearch_config.port
+        password = cls.opensearch_config.password
+        username = cls.opensearch_config.username
 
         kwargs = {
             "hosts": [{"host": host, "port": port}],
             "http_compress": True,
-            "use_ssl": cls.opensearch_config.get("use_ssl", True),
+            "use_ssl": cls.opensearch_config.use_ssl,
             "verify_certs": False,
             "ssl_assert_hostname": False,
             "ssl_show_warn": False,

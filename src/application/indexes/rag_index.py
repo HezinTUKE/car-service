@@ -33,7 +33,7 @@ class RagIndex(BaseIndex):
                                 "car_type": {"type": "keyword"},
                                 "car_brand": {"type": "keyword"},
                             },
-                        }
+                        },
                     },
                 },
             }

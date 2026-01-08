@@ -28,7 +28,7 @@ from application.utils.get_location import get_location
 
 class OrganizationHandler:
     @classmethod
-    async def add_organization(cls, request_schema: AddOrganizationRequestSchema, user_id: str, session: AsyncSession) -> dict:
+    async def add_organization(cls, request_schema: AddOrganizationRequestSchema, user_id: str, session: AsyncSession):
         try:
             location: Location = await get_location(
                 country=request_schema.country,
@@ -42,7 +42,7 @@ class OrganizationHandler:
                 return ManipulateOrganizationResponseSchema(
                     status=False,
                     msg="Location was not found",
-                ).model_dump()
+                )
 
             model = OrganizationModel(
                 **request_schema.model_dump(),
@@ -55,7 +55,7 @@ class OrganizationHandler:
             return ManipulateOrganizationResponseSchema(
                 status=True,
                 msg="Organization was added",
-            ).model_dump()
+            )
         except Exception:
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
 
@@ -112,7 +112,7 @@ class OrganizationHandler:
                 base_query=base_query, filter_dict=filter_model_dict, model=OrganizationModel, limit=limit, offset=offset, session=session
             )
 
-            return {"data": [OrganizationItem.model_validate(org).model_dump() for org in organizations], "total": total_count}
+            return {"data": [OrganizationItem.model_validate(org) for org in organizations], "total": total_count}
         except Exception:
             traceback.print_exc()
             return {"data": [], "total": 0}
@@ -167,4 +167,4 @@ class OrganizationHandler:
                 for service in services
             ],
             total=total_count,
-        ).model_dump()
+        )

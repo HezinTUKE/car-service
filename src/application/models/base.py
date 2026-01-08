@@ -7,8 +7,8 @@ Base = dec.declarative_base()
 
 
 class DBModel:
-    config_db = config["database"]
-    db_url = f"""postgresql+asyncpg://{config_db.get("username")}:{config_db.get("password")}@{config_db.get("host")}:{config_db.get("port")}/{config_db.get("db_name")}"""
+    config_db = config.database
+    db_url = f"""postgresql+asyncpg://{config_db.username}:{config_db.password}@{config_db.host}:{config_db.port}/{config_db.db_name}"""
     engine = create_async_engine(db_url, connect_args={})
 
     @classmethod

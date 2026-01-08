@@ -14,8 +14,8 @@ rabbitmq:
 security:
   secret_key: 5jEbGIulaoPQRfiVO4XZLG4rkC9IdHZH3UzBREV9GqauTtsQvPta7XsfRijHaVAD4Lk1KcJgPkgbtV1w7sydtX4IkrzOgyH2sVpS
   algorithm: HS256
-  token_expire: 25  # in minutes
-  refresh_token_expire: 20  # in minutes
+  token_expire: 1  # in minutes
+  refresh_token_expire: 60  # in minutes
 
 opensearch:
   host: "localhost"
@@ -26,3 +26,4 @@ opensearch:
 redis:
   host: localhost
   port: 6379
+  db: 0

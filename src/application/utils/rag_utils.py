@@ -1,6 +1,5 @@
 import json
 from collections import defaultdict
-from pickle import compatible_formats
 
 from requests import post
 from application.dataclasses.rag.question_metadata_dc import QuestionMetadataDc
@@ -10,7 +9,6 @@ from application.dataclasses.services.user_point import UserPoint
 from application.enums.services.metadata import FuncMetadata
 from application.enums.services.rag_source import RagSource
 from application.indexes.rag_index import RagIndex
-from application.models import ServiceModel, OfferModel
 from application.schemas.service_schemas.response_schema import RagResponseItemSchema, RagResponseSchema
 from application.utils.globals import extract_question_data_prompt
 
@@ -69,9 +67,6 @@ class RagUtils:
         if question_metadata.offer_type:
             query_body.query.bool.nested = RagNestedTermFilter(term={"offers.offer_type": question_metadata.offer_type.name})
 
-        if question_metadata.offer_type:
-            query_body.query.bool.nested = RagNestedTermFilter(term={"offers.offer_type": question_metadata.offer_type.name})
-
         if question_metadata.max_price:
             query_body.query.bool.nested = RagNestedTermFilter(term={"offers.base_price": {"lte": question_metadata.max_price}})
 
@@ -81,15 +76,7 @@ class RagUtils:
                     "offers.base_price": {
                         "order": "asc",
                         "mode": "min",
-                        "nested": {
-                            "path": "offers",
-                            "filter":
-                                {
-                                    "term": {
-                                        "offers.offer_type": question_metadata.offer_type.name
-                                    }
-                                }
-                        }
+                        "nested": {"path": "offers", "filter": {"term": {"offers.offer_type": question_metadata.offer_type.name}}},
                     }
                 }
             )
@@ -98,14 +85,11 @@ class RagUtils:
             query_body.sort.append(
                 {
                     "_geo_distance": {
-                        "point": {
-                            "lat": user_point.latitude,
-                            "lon": user_point.longitude
-                        },
+                        "point": {"lat": user_point.latitude, "lon": user_point.longitude},
                         "order": "asc",
                         "unit": "km",
                         "mode": "min",
-                        "distance_type": "arc"
+                        "distance_type": "arc",
                     }
                 }
             )
@@ -114,7 +98,8 @@ class RagUtils:
 
     @classmethod
     def embedding(cls, text: str):
-        response = post(url="http://localhost:11434/api/embeddings", json={"model": "nomic-embed-text", "prompt": text})
+        normalized_text = "".join(text.strip().strip())
+        response = post(url="http://localhost:11434/api/embeddings", json={"model": "nomic-embed-text", "prompt": normalized_text})
         return response.json()["embedding"]
 
     @classmethod
@@ -146,7 +131,9 @@ class RagUtils:
             for car_relation in relation.car_compatibility_models:
                 compatible_dict[car_relation.car_type.name].append(car_relation.car_brand.name)
 
-            compatible_content = "\n".join(f"""Car type: {key}, Car Brands: {",".join(brands)}""" for key, brands in compatible_dict.items())
+            compatible_content = "\n".join(
+                f"""Car type: {key}, Car Brands: {",".join(brands)}""" for key, brands in compatible_dict.items()
+            )
             offer_content += f"Compatible Cars:\n {compatible_content}\n\n"
 
             content += offer_content
@@ -172,10 +159,12 @@ class RagUtils:
                                 "car_type": car_relation.car_type.name,
                                 "car_brand": car_relation.car_brand.name,
                             }
-                            for car_relation in offer_service_relation.get_car_compatibility_models() if car_relation.offer_id == offer.offer_id
+                            for car_relation in offer_service_relation.get_car_compatibility_models()
+                            if car_relation.offer_id == offer.offer_id
                         ],
                     }
-                    for offer in offer_service_relation.get_offers() if offer
+                    for offer in offer_service_relation.get_offers()
+                    if offer
                 ],
             },
         )

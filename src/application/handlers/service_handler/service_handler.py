@@ -26,7 +26,7 @@ class ServiceHandler:
         )
 
         if not location:
-            return ManipulateServiceResponseSchema(status=False, msg="Address was not found").model_dump()
+            return ManipulateServiceResponseSchema(status=False, msg="Address was not found")
 
         if service_schema.organization_id:
             org_query = select(OrganizationModel).filter(OrganizationModel.organization_id == service_schema.organization_id)
@@ -34,7 +34,7 @@ class ServiceHandler:
             org_model = org_query_res.scalar_one_or_none()
 
             if not org_model:
-                return ManipulateServiceResponseSchema(status=False, msg="Organization doesn't exist").model_dump()
+                return ManipulateServiceResponseSchema(status=False, msg="Organization doesn't exist")
 
         try:
             service_model = ServiceModel(
@@ -45,7 +45,7 @@ class ServiceHandler:
                 original_full_address=location.address
             )
             session.add(service_model)
-            return ManipulateServiceResponseSchema(status=True, msg="Service added").model_dump()
+            return ManipulateServiceResponseSchema(status=True, msg="Service added")
         except Exception:
             traceback.print_exc()
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
@@ -59,12 +59,10 @@ class ServiceHandler:
         service_model = service_query_res.scalar_one_or_none()
 
         if not service_model:
-            return ManipulateServiceResponseSchema(status=False, msg="Service doesn't exist").model_dump()
+            return ManipulateServiceResponseSchema(status=False, msg="Service doesn't exist")
 
         try:
-            relations = OfferCarRelationsListDC(
-                service_model=service_model
-            )
+            relations = OfferCarRelationsListDC(service_model=service_model)
 
             for offer_schema in offer_schema.offers:
                 offer_id = str(uuid.uuid4())
@@ -81,7 +79,7 @@ class ServiceHandler:
             session.add_all(relations.get_car_compatibility_models())
 
             await RagUtils.update_or_create_rag_idx(relations)
-            return ManipulateServiceResponseSchema(status=True, msg="Offer added").model_dump()
+            return ManipulateServiceResponseSchema(status=True, msg="Offer added")
         except Exception:
             traceback.print_exc()
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
