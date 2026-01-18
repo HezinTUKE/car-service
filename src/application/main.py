@@ -1,17 +1,15 @@
 import logging
+from logging.config import dictConfig
 
 from fastapi import FastAPI
 
+from application import config
 from application.controllers.login import LoginController
 from application.controllers.opensearch_controller import OpensearchController
 from application.controllers.services.service_controller import ServiceController
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+dictConfig(config.log_config)
 
 app = FastAPI()
 app.include_router(LoginController.router)

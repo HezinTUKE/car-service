@@ -1,5 +1,5 @@
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import yaml
 
 
@@ -38,6 +38,8 @@ class Config(BaseModel):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     opensearch: OpenSearchConfig = Field(default_factory=OpenSearchConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)
+
+    model_config = ConfigDict(extra="allow")
 
 
 CONFIG_PATH = Path(__file__).resolve().parent / "config.yml"

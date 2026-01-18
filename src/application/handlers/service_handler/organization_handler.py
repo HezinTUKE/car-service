@@ -1,4 +1,4 @@
-import traceback
+import logging
 from typing import Type
 
 from geopy import Location
@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
-from application.models import ServiceModel, OfferModel
+from application.models import ServiceModel
 from application.models.services.organization import OrganizationModel
 from application.schemas.service_schemas.request_schema import (
     AddOrganizationRequestSchema,
@@ -27,6 +27,8 @@ from application.utils.get_location import get_location
 
 
 class OrganizationHandler:
+    logger = logging.getLogger(" ")
+
     @classmethod
     async def add_organization(cls, request_schema: AddOrganizationRequestSchema, user_id: str, session: AsyncSession):
         try:
@@ -57,6 +59,7 @@ class OrganizationHandler:
                 msg="Organization was added",
             )
         except Exception:
+            cls.logger.error("Failed to add organization", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
 
     @classmethod
@@ -73,6 +76,7 @@ class OrganizationHandler:
 
             return True
         except Exception:
+            cls.logger.error("Failed to remove organization", exc_info=True)
             return False
 
     @classmethod
@@ -121,7 +125,7 @@ class OrganizationHandler:
 
             return {"data": [OrganizationItem.model_validate(org) for org in organizations], "total": total_count}
         except Exception:
-            traceback.print_exc()
+            cls.logger.error("Failed to get organizations", exc_info=True)
             return {"data": [], "total": 0}
 
     @classmethod

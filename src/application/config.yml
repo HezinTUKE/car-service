@@ -1,5 +1,37 @@
 environment: DEV
 
+log_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    default:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: default
+      stream: ext://sys.stdout
+    file:
+      class: logging.FileHandler
+      level: INFO
+      formatter: default
+      filename: debug.log
+      encoding: utf-8
+  loggers:
+    " ":
+      handlers:
+        - console
+        - file
+      level: DEBUG
+      propagate: false
+  root:
+    level: DEBUG
+    handlers:
+      - console
+      - file
+
 database:
   username: test_username
   password: test_password

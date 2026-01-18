@@ -1,4 +1,4 @@
-import traceback
+import logging
 import uuid
 
 from fastapi import HTTPException, status, Request
@@ -15,6 +15,8 @@ from application.utils.redis_helper import RedisHelper
 
 
 class LoginHandler:
+    logger = logging.getLogger(" ")
+
     @classmethod
     async def login(cls, password: str, email: str, session: AsyncSession):
         hashed_password = hash_password(password)
@@ -44,7 +46,7 @@ class LoginHandler:
             session.add(user)
             return AuthMethodsResponseSchema(success=True)
         except Exception:
-            traceback.print_exc()
+            cls.logger.error(f"Signup error for email: {email}", exc_info=True)
             return AuthMethodsResponseSchema(success=False)
 
     @classmethod
@@ -108,7 +110,7 @@ class LoginHandler:
                 refresh_token=True,
             )
         except Exception:
-            traceback.print_exc()
+            LoginHandler.logger.error(f"Token generation error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Token generation error")
 
         return response

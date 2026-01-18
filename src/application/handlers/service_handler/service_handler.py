@@ -1,4 +1,4 @@
-import traceback
+import logging
 import uuid
 
 from fastapi import HTTPException, status
@@ -19,6 +19,8 @@ from application.utils.rag_utils import RagUtils
 
 
 class ServiceHandler:
+    logger = logging.getLogger(" ")
+
     @classmethod
     async def add_service(cls, service_schema: AddServiceRequestSchema, user_id: str, session: AsyncSession):
         location: Location = await get_location(
@@ -53,7 +55,7 @@ class ServiceHandler:
             session.add(service_model)
             return ManipulateServiceResponseSchema(status=True, msg="Service added")
         except Exception:
-            traceback.print_exc()
+            cls.logger.error("Add service error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
 
     @classmethod
@@ -87,5 +89,5 @@ class ServiceHandler:
             await RagUtils.update_or_create_rag_idx(relations)
             return ManipulateServiceResponseSchema(status=True, msg="Offer added")
         except Exception:
-            traceback.print_exc()
+            cls.logger.error("Add offer error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
