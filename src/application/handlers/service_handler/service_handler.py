@@ -1,21 +1,18 @@
 import logging
-import uuid
 
 from fastapi import HTTPException, status
 from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
-from application.dataclasses.services.offer_cars_relation_dc import OfferCarRelationsListDC, OfferCarRelationDC
-from application.models import ServiceModel, OrganizationModel, OfferModel, OfferCarCompatibilityModel
-from application.schemas.service_schemas.request_schema import (
-    AddServiceRequestSchema,
-    AddOffersRequestSchema,
-    CarCompatibilitySchema,
-)
-from application.schemas.service_schemas.response_schema import ManipulateServiceResponseSchema
+from application.models import ServiceModel, OrganizationModel
+from application.schemas.service_schemas.request_schemas.service_schema import FilterServiceRequestSchema, \
+    AddServiceRequestSchema
+from application.schemas.service_schemas.response_schemas.service_schema import ManipulateServiceResponseSchema, \
+    ServiceItemSchema, ServiceItemsResponseSchema
+from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
 from application.utils.get_location import get_location
-from application.utils.rag_utils import RagUtils
 
 
 class ServiceHandler:
@@ -59,35 +56,73 @@ class ServiceHandler:
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
 
     @classmethod
-    async def add_offers(cls, offer_schema: AddOffersRequestSchema, session: AsyncSession):
-        service_id = offer_schema.service_id
+    async def get_services(cls, service_filter: FilterServiceRequestSchema, session: AsyncSession):
+        service_filter_dict = service_filter.model_dump(exclude_none=True)
+        limit = service_filter_dict.pop("per_page", 10)
+        offset = service_filter_dict.pop("page_num", 1)
 
-        service_query = select(ServiceModel).filter(ServiceModel.service_id == service_id)
+        offset = offset * limit - limit
+        base_query = select(ServiceModel)
+
+        if service_filter_dict:
+            base_query = base_query.filter_by(**service_filter_dict)
+
+        base_query = base_query.options(
+            selectinload(ServiceModel.organization),
+            selectinload(ServiceModel.offers),
+        )
+
+        total_count, services = await cls._get_entity_result(
+            base_query=base_query,
+            filter_dict=service_filter_dict,
+            model=ServiceModel,
+            limit=limit,
+            offset=offset,
+            session=session,
+        )
+
+        return ServiceItemsResponseSchema(
+            data=[
+                ServiceItemSchema(
+                    service_id=service.service_id,
+                    name=service.name,
+                    description=service.description,
+                    country=service.country,
+                    city=service.city,
+                    street=service.street,
+                    house_number=service.house_number,
+                    postal_code=service.postal_code,
+                    phone_number=service.phone_number,
+                    identification_number=service.identification_number,
+                    email=service.email,
+                    longitude=service.longitude,
+                    latitude=service.latitude,
+                    original_full_address=service.original_full_address,
+                    organization_id=service.organization_id,
+                    organization_name=service.organization.name if service.organization else None,
+                    offers=(
+                        [OffersSchema.model_validate(offer).model_dump() for offer in service.offers]
+                        if service.offers
+                        else []
+                    ),
+                )
+                for service in services
+            ],
+            total=total_count,
+        )
+
+    @classmethod
+    async def get_service_by_id(cls, service_id: str, session: AsyncSession):
+        service_query = (
+            select(ServiceModel)
+            .filter(ServiceModel.service_id == service_id)
+            .options(
+                selectinload(ServiceModel.offers),
+                selectinload(ServiceModel.organization),
+            )
+        )
+
         service_query_res = await session.execute(service_query)
         service_model = service_query_res.scalar_one_or_none()
-
-        if not service_model:
-            return ManipulateServiceResponseSchema(status=False, msg="Service doesn't exist")
-
-        try:
-            relations = OfferCarRelationsListDC(service_model=service_model)
-
-            for offer_schema in offer_schema.offers:
-                offer_id = str(uuid.uuid4())
-                offer_model = OfferModel(**offer_schema.model_dump(), service_id=str(service_id), offer_id=offer_id)
-
-                offer_car_relation = OfferCarRelationDC(offer=offer_model)
-
-                offer_car_relation.car_compatibility_models = [
-                    OfferCarCompatibilityModel(**compatibility.model_dump(), offer_id=offer_id)
-                    for compatibility in offer_schema.offer_car_compatibility
-                ]
-
-            session.add_all(relations.get_offers())
-            session.add_all(relations.get_car_compatibility_models())
-
-            await RagUtils.update_or_create_rag_idx(relations)
-            return ManipulateServiceResponseSchema(status=True, msg="Offer added")
-        except Exception:
-            cls.logger.error("Add offer error", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
+        res = ServiceItemSchema.model_validate(service_model)
+        return res

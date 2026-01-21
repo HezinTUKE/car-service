@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -46,7 +48,7 @@ def verify_password(password, hashed):
 
 
 def create_token(data: dict, refresh_token: bool = False):
-
+    data["jti"] = str(uuid.uuid4())
     secret_key = config.security.secret_key
     algorithm = config.security.algorithm
     token_expiration = config.security.token_expire if not refresh_token else config.security.refresh_token_expire
@@ -55,12 +57,6 @@ def create_token(data: dict, refresh_token: bool = False):
     to_encode["exp"] = datetime.now(timezone.utc) + timedelta(minutes=token_expiration)
     to_encode["type"] = "access" if not refresh_token else "refresh"
     return jwt.encode(to_encode, key=secret_key, algorithm=algorithm)
-
-
-def set_token(response: JSONResponse, data: dict, refresh_token: bool = False):
-    cookie_key = "refresh_token" if refresh_token else "access_token"
-    access_token = create_token(data, refresh_token)
-    response.set_cookie(key=cookie_key, value=access_token, httponly=True, secure=True, samesite="lax")
 
 
 def permission_required(allowed_roles: tuple[Roles, ...]):

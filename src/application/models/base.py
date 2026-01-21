@@ -12,7 +12,7 @@ class DBModel:
     engine = create_async_engine(db_url, connect_args={})
 
     @classmethod
-    async def get_session(cls, commit: bool = True):
+    async def get_session(cls):
         session = AsyncSession(cls.engine)
         try:
             yield session

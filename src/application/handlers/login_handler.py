@@ -1,5 +1,4 @@
 import logging
-import uuid
 
 from fastapi import HTTPException, status, Request
 from fastapi.responses import JSONResponse
@@ -10,7 +9,7 @@ from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 from application.models import UsersModel
 from application.schemas.response_schemas import AuthMethodsResponseSchema
-from application.utils.password_utils import hash_password, verify_password, get_current_user, set_token
+from application.utils.password_utils import hash_password, verify_password, get_current_user, create_token
 from application.utils.redis_helper import RedisHelper
 
 
@@ -83,32 +82,21 @@ class LoginHandler:
 
     @staticmethod
     def _set_auth_tokens(sub: str, permission: Roles, user_id: str) -> JSONResponse:
-        response = JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=AuthMethodsResponseSchema(success=True).model_dump(),
-        )
+        data = {
+            "sub": sub,
+            "permission": permission.value,
+            "user_id": user_id,
+        }
 
         try:
-            set_token(
-                response=response,
-                data={
-                    "sub": sub,
-                    "permission": permission.value,
-                    "user_id": user_id,
-                    "jti": str(uuid.uuid4()),
-                },
+            access_token = create_token(data, refresh_token=False)
+            create_token(data, refresh_token=True)
+
+            response = JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content=AuthMethodsResponseSchema(success=True, access_token=access_token).model_dump(),
             )
 
-            set_token(
-                response=response,
-                data={
-                    "sub": sub,
-                    "permission": permission.value,
-                    "user_id": user_id,
-                    "jti": str(uuid.uuid4()),
-                },
-                refresh_token=True,
-            )
         except Exception:
             LoginHandler.logger.error(f"Token generation error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Token generation error")

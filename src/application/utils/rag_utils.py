@@ -9,7 +9,7 @@ from application.dataclasses.services.user_point import UserPoint
 from application.enums.services.metadata import FuncMetadata
 from application.enums.services.rag_source import RagSource
 from application.indexes.rag_index import RagIndex
-from application.schemas.service_schemas.response_schema import RagResponseItemSchema, RagResponseSchema
+from application.schemas.service_schemas.response_schemas.service_schema import RagResponseItemSchema, RagResponseSchema
 from application.utils.globals import extract_question_data_prompt
 
 

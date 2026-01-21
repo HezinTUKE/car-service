@@ -4,6 +4,8 @@ from application.enums.roles import Roles
 
 
 class AuthMethodsResponseSchema(BaseModel):
+    access_token: str = ""
+    token_type: str = Field(default="bearer")
     success: bool
 
 
