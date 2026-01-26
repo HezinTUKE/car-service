@@ -29,4 +29,4 @@ class UpdateOfferSchema(OfferSchema):
 
 class AddOffersRequestSchema(BaseModel):
     service_id: UUID
-    offers: list[OfferSchema] = Field(..., min_length=1, max_length=50)
+    offers: list[OfferSchema] = Field(..., min_length=1, max_length=10)

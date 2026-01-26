@@ -9,7 +9,7 @@ from application.indexes.rag_index import RagIndex
 
 from application.controllers import OPENSEARCH_CONTROLLER_PREFIX
 from application.enums.services.indexes import OpensearchIndexes
-from application.models.base import DBModel
+from application.models.deps import DBModel
 
 
 class OpensearchController:

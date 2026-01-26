@@ -4,7 +4,7 @@ from collections import defaultdict
 from requests import post
 from application.dataclasses.rag.question_metadata_dc import QuestionMetadataDc
 from application.dataclasses.rag.rag_os_filter import *
-from application.dataclasses.services.offer_cars_relation_dc import OfferCarRelationsListDC
+from application.dataclasses.services.offer_cars_relation_dc import ServiceDC, OfferDC
 from application.dataclasses.services.user_point import UserPoint
 from application.enums.services.metadata import FuncMetadata
 from application.enums.services.rag_source import RagSource
@@ -134,19 +134,20 @@ class RagUtils:
         return json.loads(res)
 
     @classmethod
-    async def update_or_create_rag_idx(cls, offer_service_relation: OfferCarRelationsListDC):
-        service = offer_service_relation.service_model
-        relations = offer_service_relation.offer_car_relations
+    # async def update_or_create_rag_idx(cls, offer_service_relation: OfferCarRelationsListDC):
+    async def update_or_create_rag_idx(cls, service: ServiceDC):
         content = f"""Service Name: {service.name}\n\nDescription: {service.description}\n\nAddress: {service.original_full_address}\n"""
+        offers: [OfferDC] = service.offers
 
-        if relations:
+        if offers:
             content += f"Offers:\n"
 
-        for idx, relation in enumerate(relations):
-            offer_content = f"- Offer {idx+1}/{len(relations)}:\n Offer type: {relation.offer.offer_type.name}\n Description: {relation.offer.description}\n, Price: {relation.offer.base_price} {relation.offer.currency.name}\n"
+        for idx, offer in enumerate(offers):
+            offer: OfferDC
+            offer_content = f"- Offer {idx+1}/{len(offers)}:\n Offer type: {offer.offer_type.name}\n Description: {offer.description}\n, Price: {offer.base_price} {offer.currency.name}\n"
             compatible_dict = defaultdict(list)
 
-            for car_relation in relation.car_compatibility_models:
+            for car_relation in offer.offer_car_compatibility:
                 compatible_dict[car_relation.car_type.name].append(car_relation.car_brand.name)
 
             compatible_content = "\n".join(
@@ -177,11 +178,11 @@ class RagUtils:
                                 "car_type": car_relation.car_type.name,
                                 "car_brand": car_relation.car_brand.name,
                             }
-                            for car_relation in offer_service_relation.get_car_compatibility_models()
+                            for car_relation in offer.offer_car_compatibility
                             if car_relation.offer_id == offer.offer_id
                         ],
                     }
-                    for offer in offer_service_relation.get_offers()
+                    for offer in offers
                     if offer
                 ],
             },

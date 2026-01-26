@@ -5,11 +5,13 @@ from application.controllers import ORGANIZATION_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 from application.handlers.service_handler.organization_handler import OrganizationHandler
-from application.models.base import DBModel
+from application.models.deps import DBModel
 from application.schemas.service_schemas.request_schemas.organization_schema import AddOrganizationRequestSchema
 from application.schemas.util_schemas import FilterEntityRequestSchema
-from application.schemas.service_schemas.response_schemas.organization_schema import \
-    ManipulateOrganizationResponseSchema, OrganizationItemsResponseSchema
+from application.schemas.service_schemas.response_schemas.organization_schema import (
+    ManipulateOrganizationResponseSchema,
+    OrganizationItemsResponseSchema,
+)
 from application.utils.password_utils import permission_required
 
 

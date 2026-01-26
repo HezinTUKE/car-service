@@ -6,11 +6,16 @@ from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 from application.handlers.rag_handler import RagHandler
 from application.handlers.service_handler.service_handler import ServiceHandler
-from application.models.base import DBModel
-from application.schemas.service_schemas.request_schemas.service_schema import FilterServiceRequestSchema, \
-    AddServiceRequestSchema
-from application.schemas.service_schemas.response_schemas.service_schema import ManipulateServiceResponseSchema, \
-    ServiceItemsResponseSchema, RagResponseSchema
+from application.models.deps import DBModel
+from application.schemas.service_schemas.request_schemas.service_schema import (
+    FilterServiceRequestSchema,
+    AddServiceRequestSchema,
+)
+from application.schemas.service_schemas.response_schemas.service_schema import (
+    ManipulateServiceResponseSchema,
+    ServiceItemsResponseSchema,
+    RagResponseSchema,
+)
 from application.utils.password_utils import permission_required
 
 

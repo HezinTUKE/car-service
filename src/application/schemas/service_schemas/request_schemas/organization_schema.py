@@ -15,5 +15,3 @@ class AddOrganizationRequestSchema(BaseModel):
     phone_number: PhoneNumber
     identification_number: IdentificationNumber
     email: EmailStr
-
-

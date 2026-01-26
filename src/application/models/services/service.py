@@ -40,6 +40,6 @@ class ServiceModel(Base):
     organization: Mapped["OrganizationModel"] = relationship(
         "OrganizationModel", back_populates="services", lazy="selectin"
     )
-    offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services")
+    offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services", lazy="selectin")
 
     __table_args__ = (UniqueConstraint("name", "identification_number", name="uq_identification_number_name"),)
