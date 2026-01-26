@@ -6,3 +6,4 @@ venv/
 config.yml
 docker-compose.yaml
 *.lock
+*.log
