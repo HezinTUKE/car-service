@@ -1,5 +1,4 @@
 import logging
-from typing import cast
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, update
@@ -9,13 +8,10 @@ from sqlalchemy.orm import selectinload
 from application.dataclasses.services.offer_cars_relation_dc import (
     OfferDC,
     OfferCarCompatibilityModelDC,
-    ServiceDC,
 )
-from application.enums.services.country import Country
 from application.models import ServiceModel, OfferModel, OfferCarCompatibilityModel
 from application.schemas.service_schemas.request_schemas.offer_schema import AddOffersRequestSchema, UpdateOfferSchema
 from application.schemas.service_schemas.response_schemas.service_schema import ManipulateServiceResponseSchema
-from application.utils.rag_utils import RagUtils
 
 
 class OffersHandler:
@@ -53,9 +49,6 @@ class OffersHandler:
             await session.commit()
             await session.refresh(service_model, ["offers"])
 
-            service_dc = ServiceDC(**service_model.__dict__)
-            await RagUtils.update_or_create_rag_idx(service_dc)
-
             return ManipulateServiceResponseSchema(status=True, msg="Offer added")
         except Exception:
             cls.logger.error("Add offer error", exc_info=True)
@@ -80,31 +73,30 @@ class OffersHandler:
 
             offers_dc: [OfferDC] = [OfferDC(**offer.__dict__) for offer in service_model.offers]
 
-            service_dc = ServiceDC(
-                service_id=str(service_model.service_id),
-                organization_id=str(service_model.organization_id) if service_model.organization_id else None,
-                name=str(service_model.name),
-                description=str(service_model.description),
-                country=Country(service_model.country),
-                city=str(service_model.city),
-                street=str(service_model.street),
-                house_number=str(service_model.house_number),
-                postal_code=str(service_model.postal_code),
-                phone_number=str(service_model.phone_number),
-                email=str(service_model.email),
-                longitude=cast(float, service_model.longitude),
-                latitude=cast(float, service_model.latitude),
-                original_full_address=str(service_model.original_full_address),
-                identification_number=str(service_model.identification_number),
-                owner=str(service_model.owner),
-                created_at=cast(int, service_model.created_at),
-                updated_at=cast(int, service_model.updated_at),
-                offers=offers_dc,
-            )
+            # service_dc = ServiceDC(
+            #     service_id=str(service_model.service_id),
+            #     organization_id=str(service_model.organization_id) if service_model.organization_id else None,
+            #     name=str(service_model.name),
+            #     description=str(service_model.description),
+            #     country=Country(service_model.country),
+            #     city=str(service_model.city),
+            #     street=str(service_model.street),
+            #     house_number=str(service_model.house_number),
+            #     postal_code=str(service_model.postal_code),
+            #     phone_number=str(service_model.phone_number),
+            #     email=str(service_model.email),
+            #     longitude=cast(float, service_model.longitude),
+            #     latitude=cast(float, service_model.latitude),
+            #     original_full_address=str(service_model.original_full_address),
+            #     identification_number=str(service_model.identification_number),
+            #     owner=str(service_model.owner),
+            #     created_at=cast(int, service_model.created_at),
+            #     updated_at=cast(int, service_model.updated_at),
+            #     offers=offers_dc,
+            # )
 
             await session.commit()
 
-            await RagUtils.update_or_create_rag_idx(service_dc)
             return ManipulateServiceResponseSchema(status=True, msg="Offer updated")
         except Exception:
             cls.logger.error("Update offer error", exc_info=True)

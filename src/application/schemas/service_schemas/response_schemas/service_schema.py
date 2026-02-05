@@ -21,13 +21,3 @@ class ServiceItemSchema(EntityItem):
 class ServiceItemsResponseSchema(BaseModel):
     data: list[ServiceItemSchema]
     total: int
-
-
-class RagResponseItemSchema(BaseModel):
-    service_id: UUID | None
-    content: str
-    score: float
-
-
-class RagResponseSchema(BaseModel):
-    data: list[RagResponseItemSchema]

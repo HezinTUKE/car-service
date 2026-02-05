@@ -3,6 +3,16 @@ from pydantic import BaseModel, Field, ConfigDict
 import yaml
 
 
+class RabbitMQConfig(BaseModel):
+    host: str
+    port: int
+    username: str
+    password: str
+    queue: str
+    exchange: str
+    durable: bool = Field(default=True)
+
+
 class DatabaseConfig(BaseModel):
     host: str
     port: int
@@ -38,6 +48,7 @@ class Config(BaseModel):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     opensearch: OpenSearchConfig = Field(default_factory=OpenSearchConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)
+    rabbitmq: RabbitMQConfig = Field(default_factory=RabbitMQConfig)
 
     model_config = ConfigDict(extra="allow")
 

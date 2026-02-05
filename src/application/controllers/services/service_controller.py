@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from application.controllers import SERVICE_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
-from application.handlers.rag_handler import RagHandler
 from application.handlers.service_handler.service_handler import ServiceHandler
 from application.models.deps import DBModel
 from application.schemas.service_schemas.request_schemas.service_schema import (
@@ -14,7 +13,6 @@ from application.schemas.service_schemas.request_schemas.service_schema import (
 from application.schemas.service_schemas.response_schemas.service_schema import (
     ManipulateServiceResponseSchema,
     ServiceItemsResponseSchema,
-    RagResponseSchema,
 )
 from application.utils.password_utils import permission_required
 
@@ -46,10 +44,3 @@ class ServiceController:
         session: AsyncSession = Depends(DBModel.get_session),
     ):
         return await ServiceHandler.get_service_by_id(service_id, session)
-
-    @staticmethod
-    @router.get("/ai-query", response_model=RagResponseSchema)
-    async def ai_query(
-        question: str,
-    ):
-        return await RagHandler.rag_query(question=question)

@@ -42,6 +42,10 @@ database:
 rabbitmq:
   username: admin
   password: admin
+  host: localhost
+  port: 5672
+  queue: car_service_queue
+  exchange: car_service_exchange
 
 security:
   secret_key: 5jEbGIulaoPQRfiVO4XZLG4rkC9IdHZH3UzBREV9GqauTtsQvPta7XsfRijHaVAD4Lk1KcJgPkgbtV1w7sydtX4IkrzOgyH2sVpS

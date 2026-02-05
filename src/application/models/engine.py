@@ -10,7 +10,6 @@ engine = create_async_engine(
     future=True,
 )
 
-
 SessionFactory = async_sessionmaker(
     bind=engine,
     expire_on_commit=False,
