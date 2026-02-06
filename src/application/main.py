@@ -7,6 +7,7 @@ from application import config
 from application.controllers.login import LoginController
 from application.controllers.services.offer_controller import OfferController
 from application.controllers.services.organization_controller import OrganizationController
+from application.controllers.services.schedule_controller import ScheduleController
 from application.controllers.services.service_controller import ServiceController
 from application.events.event import get_rabbit_processor, close_rabbit_processor
 
@@ -29,3 +30,4 @@ app.include_router(LoginController.router)
 app.include_router(ServiceController.router)
 app.include_router(OrganizationController.router)
 app.include_router(OfferController.router)
+app.include_router(ScheduleController.router)

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CarType(Enum):
+class CarType(str, Enum):
     # Passenger cars
     SEDAN = "SEDAN"
     HATCHBACK = "HATCHBACK"

@@ -64,14 +64,14 @@ class OffersHandler:
                 .returning(OfferModel.service_id)
             )
 
-            update_query_res = await session.execute(update_query)
-            updated_offer_service_id: str = update_query_res.scalar_one()
+            await session.execute(update_query)
+            # updated_offer_service_id: str = update_query_res.scalar_one()
+            #
+            # service_model = await session.get(
+            #     ServiceModel, updated_offer_service_id, options=[selectinload(ServiceModel.offers)]
+            # )
 
-            service_model = await session.get(
-                ServiceModel, updated_offer_service_id, options=[selectinload(ServiceModel.offers)]
-            )
-
-            offers_dc: [OfferDC] = [OfferDC(**offer.__dict__) for offer in service_model.offers]
+            # offers_dc: [OfferDC] = [OfferDC(**offer.__dict__) for offer in service_model.offers]
 
             # service_dc = ServiceDC(
             #     service_id=str(service_model.service_id),

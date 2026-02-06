@@ -44,6 +44,7 @@ class RedisConfig(BaseModel):
 
 class Config(BaseModel):
     environment: str = Field(default="DEV")
+    origin: str = Field(default="CarService")
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     opensearch: OpenSearchConfig = Field(default_factory=OpenSearchConfig)

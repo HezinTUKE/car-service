@@ -5,16 +5,16 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool, Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from application import config as _config
+from application import config as _config, Config as CustomConfig
 from application.models.base import Base
 from application.models import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 target_metadata = [Base.metadata]
-
+_config: CustomConfig
 config = context.config
-config_db = _config["database"]
+config_db = _config.database
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 
 config.set_main_option(
     "sqlalchemy.url",
-    f"""postgresql+asyncpg://{config_db.get("username")}:{config_db.get("password")}@{config_db.get("host")}:{config_db.get("port")}/{config_db.get("db_name")}""",
+    f"""postgresql+asyncpg://{config_db.username}:{config_db.password }@{config_db.host}:{config_db.port}/{config_db.db_name}""",
 )
 
 # add your model's MetaData object here

@@ -1,4 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from application.deps.db_deps import DBModel
+from application.handlers.service_handler.publish_services_handler import PublishServicesHandler
 
 
 class ScheduleController:
@@ -6,5 +10,8 @@ class ScheduleController:
 
     @staticmethod
     @router.get("/midnight")
-    async def midnight_event():
-        pass
+    async def midnight_event(
+        session: AsyncSession = Depends(DBModel.get_session),
+    ):
+        res = await PublishServicesHandler.publish_services(session)
+        return res

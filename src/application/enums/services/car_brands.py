@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CarBrands(Enum):
+class CarBrands(str, Enum):
     HONDA = "HONDA"
     TOYOTA = "TOYOTA"
     FORD = "FORD"

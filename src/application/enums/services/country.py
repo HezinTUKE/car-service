@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Country(Enum):
+class Country(str, Enum):
     SLOVAKIA = "SLOVAKIA"
     CZECHIA = "CZECHIA"
     AUSTRIA = "AUSTRIA"

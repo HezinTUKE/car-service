@@ -52,7 +52,7 @@ class ServiceHandler:
                 owner=user_id,
                 longitude=location.longitude,
                 latitude=location.latitude,
-                original_full_address=location.address
+                original_full_address=location.address,
             )
             session.add(service_model)
             await session.commit()

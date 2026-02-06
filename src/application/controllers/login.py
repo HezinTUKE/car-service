@@ -6,7 +6,7 @@ from application.controllers import LOGIN_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 from application.handlers.login_handler import LoginHandler
-from application.models.deps import DBModel
+from application.deps.db_deps import DBModel
 from application.schemas.response_schemas import AuthMethodsResponseSchema, ProfileResponseSchema
 from application.utils.password_utils import get_current_user
 

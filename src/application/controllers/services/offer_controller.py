@@ -5,7 +5,7 @@ from application.controllers import OFFER_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 from application.handlers.service_handler.offers_handler import OffersHandler
-from application.models.deps import DBModel
+from application.deps.db_deps import DBModel
 from application.schemas.service_schemas.request_schemas.offer_schema import AddOffersRequestSchema, UpdateOfferSchema
 from application.schemas.service_schemas.response_schemas.offer_schema import ManipulateOfferResponseSchema
 from application.utils.password_utils import permission_required

@@ -28,9 +28,9 @@ class ServiceModel(Base):
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     original_full_address: Mapped[str] = mapped_column(String, nullable=False, index=True)
-
     identification_number: Mapped[str] = mapped_column(String, nullable=False)
     owner: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
+    is_published: Mapped[bool] = mapped_column(nullable=True, default=False, index=True)
 
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(

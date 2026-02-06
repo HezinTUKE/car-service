@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class OfferType(Enum):
+class OfferType(str, Enum):
     # General services
     MAINTENANCE = "MAINTENANCE"  # Regular servicing, inspections
     REPAIR = "REPAIR"  # General mechanical repairs

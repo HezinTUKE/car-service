@@ -8,7 +8,6 @@ from application.enums.services.car_types import CarType
 from application.enums.services.country import Country
 from application.enums.services.currency import Currency
 from application.enums.services.offer_types import OfferType
-from application.models import OfferModel, OfferCarCompatibilityModel, ServiceModel
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
@@ -16,8 +15,8 @@ from application.models import OfferModel, OfferCarCompatibilityModel, ServiceMo
 class OfferCarCompatibilityModelDC(DataClassJsonMixin):
     offer_car_compatibility_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     offer_id: str = ""
-    car_type: CarType = field(default=CarBrands)
-    car_brand: CarBrands = field(default=CarType)
+    car_type: CarType = field(default=CarBrands.ALL)
+    car_brand: CarBrands = field(default=CarType.AMBULANCE)
     created_at: int = None
     updated_at: int = None
 
@@ -26,9 +25,9 @@ class OfferCarCompatibilityModelDC(DataClassJsonMixin):
 @dataclass
 class OfferDC(DataClassJsonMixin):
     offer_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    offer_type: OfferType = field(default=OfferType)
+    offer_type: OfferType = field(default=OfferType.CAR_WASH)
     description: str = ""
-    currency: Currency = field(default=Currency)
+    currency: Currency = field(default=Currency.EUR)
     base_price: float = 0.0
     sale: int = 0
     service_id: str = ""
@@ -45,7 +44,7 @@ class ServiceDC(DataClassJsonMixin):
     organization_id: str = ""
     name: str = ""
     description: str = ""
-    country: Country = field(default=Country)
+    country: Country = field(default=Country.SLOVAKIA)
     city: str = ""
     street: str = ""
     house_number: str = ""
@@ -64,22 +63,5 @@ class ServiceDC(DataClassJsonMixin):
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
-class OfferCarRelationDC(DataClassJsonMixin):
-    offer: OfferModel
-    car_compatibility_models: list[OfferCarCompatibilityModel] = field(default_factory=list)
-
-
-@dataclass_json(undefined=Undefined.EXCLUDE)
-@dataclass
-class OfferCarRelationsListDC(DataClassJsonMixin):
-    service_model: ServiceModel
-    offer_car_relations: list[OfferCarRelationDC] = field(default_factory=list)
-
-    def get_offers(self):
-        return [relation.offer for relation in self.offer_car_relations]
-
-    def get_car_compatibility_models(self):
-        compatibility_models = []
-        for relation in self.offer_car_relations:
-            compatibility_models.extend(relation.car_compatibility_models)
-        return compatibility_models
+class EventData(DataClassJsonMixin):
+    services: list[ServiceDC] = field(default_factory=list)
