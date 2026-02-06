@@ -3,7 +3,7 @@ import logging
 from typing import cast
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.dataclasses.services.offer_cars_relation_dc import (
@@ -30,7 +30,7 @@ class PublishServicesHandler:
 
             while offset <= row_number:
                 data = EventData()
-                services: [ServiceModel] = cls.retrieve_unpublished_services(session, limit, offset)
+                services: [ServiceModel] = await cls.retrieve_unpublished_services(session, limit, offset)
 
                 for service_model in services:
                     offers_dc: [OfferDC] = [
@@ -80,10 +80,16 @@ class PublishServicesHandler:
                     routing_key=PublishRabbitRouter.PROCESS_SERVICES,
                     message=data.to_dict(),
                 )
-                offset += limit
 
+                for service in services:
+                    service.is_published = True
+
+                await session.commit()
                 await asyncio.sleep(0.01)
 
+                offset += limit
+
+            return {"status": True}
         except Exception:
             cls.logger.error("Failed to publish services", exc_info=True)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to publish services")

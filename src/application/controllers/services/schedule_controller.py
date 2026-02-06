@@ -9,7 +9,7 @@ class ScheduleController:
     router = APIRouter(prefix="/schedule", tags=["Schedule"])
 
     @staticmethod
-    @router.get("/midnight")
+    @router.post("/midnight")
     async def midnight_event(
         session: AsyncSession = Depends(DBModel.get_session),
     ):
