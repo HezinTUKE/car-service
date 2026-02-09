@@ -3,7 +3,7 @@ import logging
 from typing import cast
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.dataclasses.services.offer_cars_relation_dc import (
