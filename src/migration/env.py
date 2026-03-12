@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool, Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
+from geoalchemy2 import Geometry
 from application import config as _config, Config as CustomConfig
 from application.models.base import Base
 from application.models import *

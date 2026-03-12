@@ -5,7 +5,6 @@ from sqlalchemy import UUID, Enum, Float, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from application.enums.services.currency import Currency
-from application.enums.services.offer_types import OfferType
 from application.models.base import Base
 
 
@@ -13,10 +12,7 @@ class OfferModel(Base):
     __tablename__ = "offers"
 
     offer_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
-    offer_type: Mapped[OfferType] = mapped_column(
-        Enum(OfferType, length=50, native_enum=False), nullable=False, index=True
-    )
-    description: Mapped[str] = mapped_column(Text, nullable=False)
+
     currency: Mapped[Currency] = mapped_column(Enum(Currency, length=20, native_enum=False), nullable=False, index=True)
     base_price: Mapped[float] = mapped_column(Float, nullable=False, index=True)
     sale: Mapped[int] = mapped_column(Integer, nullable=True, index=True)
@@ -32,4 +28,9 @@ class OfferModel(Base):
     services: Mapped["ServiceModel"] = relationship("ServiceModel", back_populates="offers", lazy="selectin")
     offer_car_compatibility: Mapped[list["OfferCarCompatibilityModel"]] = relationship(
         "OfferCarCompatibilityModel", back_populates="offers", lazy="selectin"
+    )
+    relation_translated_offers: Mapped[list["RelationTranslatedOfferModel"]] = relationship(
+        "RelationTranslatedOfferModel",
+        back_populates="offer",
+        lazy="selectin"
     )

@@ -43,6 +43,7 @@ class LoginHandler:
 
             user = UsersModel(email=email, password=hash_password(password), role=role)
             session.add(user)
+            await session.commit()
             return AuthMethodsResponseSchema(success=True)
         except Exception:
             cls.logger.error(f"Signup error for email: {email}", exc_info=True)

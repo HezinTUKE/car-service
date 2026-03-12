@@ -28,7 +28,7 @@ class LoginController:
         session: AsyncSession = Depends(DBModel.get_session),
     ):
         result = await LoginHandler.signup(email=email, password=password, role=role, session=session)
-        return {"result": result}
+        return result
 
     @staticmethod
     @router.post(path="/signin", response_model=AuthMethodsResponseSchema)

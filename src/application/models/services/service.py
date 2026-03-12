@@ -1,8 +1,9 @@
 import time
 import uuid
 
-from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint, Float, Text
+from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from geoalchemy2 import Geometry, WKBElement
 
 from application.enums.services.country import Country
 from application.models.base import Base
@@ -25,8 +26,7 @@ class ServiceModel(Base):
     postal_code: Mapped[str] = mapped_column(String, nullable=False, index=True)
     phone_number: Mapped[str] = mapped_column(String, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    longitude: Mapped[float] = mapped_column(Float, nullable=False)
-    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    location: Mapped[WKBElement] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=False)
     original_full_address: Mapped[str] = mapped_column(String, nullable=False, index=True)
     identification_number: Mapped[str] = mapped_column(String, nullable=False)
     owner: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)

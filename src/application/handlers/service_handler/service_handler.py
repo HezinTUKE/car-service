@@ -5,7 +5,8 @@ from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-
+from shapely.geometry import Point
+from geoalchemy2.shape import from_shape
 from application.models import ServiceModel, OrganizationModel
 from application.schemas.service_schemas.request_schemas.service_schema import (
     FilterServiceRequestSchema,
@@ -50,8 +51,7 @@ class ServiceHandler:
             service_model = ServiceModel(
                 **service_schema.model_dump(),
                 owner=user_id,
-                longitude=location.longitude,
-                latitude=location.latitude,
+                location=from_shape(Point(location.longitude, location.latitude), srid=4326),
                 original_full_address=location.address,
             )
             session.add(service_model)
