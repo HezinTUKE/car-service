@@ -21,9 +21,18 @@ async def lifespan(_: FastAPI):
     finally:
         await close_rabbit_processor()
 
+
+logger.add("debug.log", rotation="100 MB")
+
 app = FastAPI(lifespan=lifespan)
 
-logger.add("debug.log", rotation="10 MB")
+
+@app.middleware("http")
+async def all_loggers(request, call_next):
+    logger.info(f"Request: {request.method} {request.url}")
+    response = await call_next(request)
+    logger.info(f"Response: {response.status_code} for {request.method} {request.url}")
+    return response
 
 app.include_router(LoginController.router)
 app.include_router(ServiceController.router)

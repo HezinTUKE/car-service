@@ -13,6 +13,7 @@ from application.schemas.service_schemas.response_schemas.organization_schema im
     ManipulateOrganizationResponseSchema,
     OrganizationItem,
 )
+from application.utils.exceptions import DBException
 from application.utils.get_location import get_location
 from application.utils.handler_helpers import get_entity_result
 
@@ -52,7 +53,7 @@ class OrganizationHandler:
             )
         except Exception:
             logger.error("Failed to add organization", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
+            raise DBException()
 
     @classmethod
     async def remove_organization(cls, organization_id: str, current_user: JwtDC, session: AsyncSession) -> bool:
@@ -96,4 +97,4 @@ class OrganizationHandler:
             return {"data": [OrganizationItem.model_validate(org) for org in organizations], "total": total_count}
         except Exception:
             logger.error("Failed to get organizations", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")
+            raise DBException()

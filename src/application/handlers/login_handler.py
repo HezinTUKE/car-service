@@ -8,6 +8,7 @@ from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
 from application.models import UsersModel
 from application.schemas.response_schemas import AuthMethodsResponseSchema
+from application.utils.exceptions import TokenGenerationException, IncorrectDataException, UnauthorizedException
 from application.utils.password_utils import hash_password, verify_password, get_current_user, create_token
 from application.utils.redis_helper import RedisHelper
 
@@ -21,10 +22,7 @@ class LoginHandler:
         user: UsersModel = _query_result.scalar_one_or_none()
 
         if not user or verify_password(hashed_password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-            )
+            raise IncorrectDataException()
 
         return cls._set_auth_tokens(sub=user.email, permission=user.role, user_id=user.user_id)
 
@@ -67,7 +65,7 @@ class LoginHandler:
     async def refresh_token(cls, request: Request):
         refresh_cookie = request.cookies.get("refresh_token")
         if not refresh_cookie:
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token missing")
+            raise UnauthorizedException()
 
         current_user = get_current_user(refresh_cookie)
         redis = RedisHelper()
@@ -97,6 +95,6 @@ class LoginHandler:
 
         except Exception:
             logger.error(f"Token generation error", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Token generation error")
+            raise TokenGenerationException()
 
         return response

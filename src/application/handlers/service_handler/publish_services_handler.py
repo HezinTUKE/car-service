@@ -16,6 +16,7 @@ from application.enums.services.country import Country
 from application.enums.services.rabbit_routers import PublishRabbitRouter
 from application.events.event import get_rabbit_processor
 from application.models import ServiceModel
+from application.utils.exceptions import DBException
 
 
 class PublishServicesHandler:
@@ -90,7 +91,7 @@ class PublishServicesHandler:
             return {"status": True}
         except Exception:
             logger.error("Failed to publish services", exc_info=True)
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to publish services")
+            raise DBException()
 
     @staticmethod
     async def count_unpublished_services(session: AsyncSession) -> int:

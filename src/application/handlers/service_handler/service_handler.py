@@ -17,6 +17,7 @@ from application.schemas.service_schemas.response_schemas.service_schema import 
     ServiceItemsResponseSchema,
 )
 from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
+from application.utils.exceptions import DBException
 from application.utils.get_location import get_location
 from application.utils.handler_helpers import get_entity_result
 
@@ -58,7 +59,7 @@ class ServiceHandler:
             return ManipulateServiceResponseSchema(status=True, msg="Service added")
         except Exception:
             logger.error("Add service error", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "service addition failed")
+            raise DBException()
 
     @classmethod
     async def get_services(cls, service_filter: FilterServiceRequestSchema, session: AsyncSession):
@@ -118,7 +119,7 @@ class ServiceHandler:
             )
         except Exception:
             logger.error("Failed to get services", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")
+            raise DBException()
 
     @classmethod
     async def get_service_by_id(cls, service_id: str, session: AsyncSession):
@@ -138,4 +139,4 @@ class ServiceHandler:
             return res
         except Exception:
             logger.error("Failed to get service by id", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")
+            raise DBException()

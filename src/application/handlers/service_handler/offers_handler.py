@@ -13,6 +13,7 @@ from application.dataclasses.services.offer_cars_relation_dc import (
 from application.models import ServiceModel, OfferModel, OfferCarCompatibilityModel
 from application.schemas.service_schemas.request_schemas.offer_schema import AddOffersRequestSchema, UpdateOfferSchema
 from application.schemas.service_schemas.response_schemas.service_schema import ManipulateServiceResponseSchema
+from application.utils.exceptions import DBException
 
 
 class OffersHandler:
@@ -52,7 +53,7 @@ class OffersHandler:
             return ManipulateServiceResponseSchema(status=True, msg="Offer added")
         except Exception:
             logger.error("Add offer error", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
+            raise DBException()
 
     @classmethod
     async def update_offers(cls, update_offer_schema: UpdateOfferSchema, session: AsyncSession):
@@ -100,4 +101,4 @@ class OffersHandler:
             return ManipulateServiceResponseSchema(status=True, msg="Offer updated")
         except Exception:
             logger.error("Update offer error", exc_info=True)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")
+            raise DBException()
