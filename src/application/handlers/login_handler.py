@@ -1,9 +1,8 @@
-import logging
-
 from fastapi import HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from loguru import logger
 
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
@@ -14,8 +13,6 @@ from application.utils.redis_helper import RedisHelper
 
 
 class LoginHandler:
-    logger = logging.getLogger(" ")
-
     @classmethod
     async def login(cls, password: str, email: str, session: AsyncSession):
         hashed_password = hash_password(password)
@@ -46,7 +43,7 @@ class LoginHandler:
             await session.commit()
             return AuthMethodsResponseSchema(success=True)
         except Exception:
-            cls.logger.error(f"Signup error for email: {email}", exc_info=True)
+            logger.error(f"Signup error for email: {email}", exc_info=True)
             return AuthMethodsResponseSchema(success=False)
 
     @classmethod
@@ -99,7 +96,7 @@ class LoginHandler:
             )
 
         except Exception:
-            LoginHandler.logger.error(f"Token generation error", exc_info=True)
+            logger.error(f"Token generation error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Token generation error")
 
         return response

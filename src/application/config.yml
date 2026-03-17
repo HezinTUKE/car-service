@@ -34,9 +34,9 @@ log_config:
       - file
 
 database:
-  username: test_username
-  password: test_password
-  port: 5446
+  username: username
+  password: password
+  port: 5444
   host: localhost
   db_name: car_service_db
 

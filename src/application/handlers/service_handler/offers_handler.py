@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from loguru import logger
 
 from application.dataclasses.services.offer_cars_relation_dc import (
     OfferDC,
@@ -15,7 +16,6 @@ from application.schemas.service_schemas.response_schemas.service_schema import 
 
 
 class OffersHandler:
-    logger = logging.getLogger(" ")
 
     @classmethod
     async def add_offers(cls, offer_schema: AddOffersRequestSchema, session: AsyncSession):
@@ -51,7 +51,7 @@ class OffersHandler:
 
             return ManipulateServiceResponseSchema(status=True, msg="Offer added")
         except Exception:
-            cls.logger.error("Add offer error", exc_info=True)
+            logger.error("Add offer error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
 
     @classmethod
@@ -99,5 +99,5 @@ class OffersHandler:
 
             return ManipulateServiceResponseSchema(status=True, msg="Offer updated")
         except Exception:
-            cls.logger.error("Update offer error", exc_info=True)
+            logger.error("Update offer error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")

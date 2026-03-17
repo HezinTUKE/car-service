@@ -29,6 +29,7 @@ fastapi = "^0.121.3"
 pydantic = {version = "^2.12.5", extras = ["email"]}
 uvicorn = ">=0.34.2,<0.35.0"
 python-multipart = "^0.0.20"
+python-dotenv = "^1.2.2"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 passlib = {extras = ["argon2"], version = "^1.7.4"}
 redis = "^7.1.0"
@@ -37,7 +38,7 @@ celery = "5.6.2"
 aio-pika = "^9.5.8"
 geoalchemy2 =  "^0.18.1"
 shapely = "^2.1.2"
-pytest = "^9.0.2"
+loguru = "^0.7.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.3"

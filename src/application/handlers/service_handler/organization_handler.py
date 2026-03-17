@@ -1,9 +1,8 @@
-import logging
-
 from geopy import Location
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
@@ -19,7 +18,6 @@ from application.utils.handler_helpers import get_entity_result
 
 
 class OrganizationHandler:
-    logger = logging.getLogger(" ")
 
     @classmethod
     async def add_organization(cls, request_schema: AddOrganizationRequestSchema, user_id: str, session: AsyncSession):
@@ -53,7 +51,7 @@ class OrganizationHandler:
                 msg="Organization was added",
             )
         except Exception:
-            cls.logger.error("Failed to add organization", exc_info=True)
+            logger.error("Failed to add organization", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "DB exception")
 
     @classmethod
@@ -71,7 +69,7 @@ class OrganizationHandler:
             await session.commit()
             return True
         except Exception:
-            cls.logger.error("Failed to remove organization", exc_info=True)
+            logger.error("Failed to remove organization", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")
 
     @classmethod
@@ -97,5 +95,5 @@ class OrganizationHandler:
             )
             return {"data": [OrganizationItem.model_validate(org) for org in organizations], "total": total_count}
         except Exception:
-            cls.logger.error("Failed to get organizations", exc_info=True)
+            logger.error("Failed to get organizations", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")

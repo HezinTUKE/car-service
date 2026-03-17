@@ -1,9 +1,8 @@
 from contextlib import asynccontextmanager
-from logging.config import dictConfig
+from loguru import logger
 
 from fastapi import FastAPI
 
-from application import config
 from application.controllers.login import LoginController
 from application.controllers.services.offer_controller import OfferController
 from application.controllers.services.organization_controller import OrganizationController
@@ -22,10 +21,10 @@ async def lifespan(_: FastAPI):
     finally:
         await close_rabbit_processor()
 
-
-dictConfig(config.log_config)
-
 app = FastAPI(lifespan=lifespan)
+
+logger.add("debug.log", rotation="10 MB")
+
 app.include_router(LoginController.router)
 app.include_router(ServiceController.router)
 app.include_router(OrganizationController.router)

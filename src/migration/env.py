@@ -1,20 +1,28 @@
 import asyncio
+import os
 from logging.config import fileConfig
-
+from dotenv import load_dotenv
 from alembic import context
 from sqlalchemy import engine_from_config, pool, Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from geoalchemy2 import Geometry
-from application import config as _config, Config as CustomConfig
 from application.models.base import Base
 from application.models import *
+from application.models.engine import username
+
+load_dotenv()
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 target_metadata = [Base.metadata]
-_config: CustomConfig
 config = context.config
-config_db = _config.database
+
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST", "localhost")
+port = os.getenv("DB_PORT", "5432")
+db_name = os.getenv("DB_NAME")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -23,7 +31,7 @@ if config.config_file_name is not None:
 
 config.set_main_option(
     "sqlalchemy.url",
-    f"""postgresql+asyncpg://{config_db.username}:{config_db.password }@{config_db.host}:{config_db.port}/{config_db.db_name}""",
+    f"""postgresql+asyncpg://{db_username}:{password}@{host}:{port}/{db_name}""",
 )
 
 # add your model's MetaData object here

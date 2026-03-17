@@ -1,10 +1,10 @@
 import asyncio
-import logging
 from typing import cast
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 
 from application.dataclasses.services.offer_cars_relation_dc import (
     EventData,
@@ -19,8 +19,6 @@ from application.models import ServiceModel
 
 
 class PublishServicesHandler:
-    logger = logging.getLogger(" ")
-
     @classmethod
     async def publish_services(cls, session: AsyncSession):
         try:
@@ -91,7 +89,7 @@ class PublishServicesHandler:
 
             return {"status": True}
         except Exception:
-            cls.logger.error("Failed to publish services", exc_info=True)
+            logger.error("Failed to publish services", exc_info=True)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to publish services")
 
     @staticmethod

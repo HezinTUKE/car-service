@@ -1,5 +1,4 @@
-import logging
-
+from loguru import logger
 from fastapi import HTTPException, status
 from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,10 +18,10 @@ from application.schemas.service_schemas.response_schemas.service_schema import 
 )
 from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
 from application.utils.get_location import get_location
+from application.utils.handler_helpers import get_entity_result
 
 
 class ServiceHandler:
-    logger = logging.getLogger(" ")
 
     @classmethod
     async def add_service(cls, service_schema: AddServiceRequestSchema, user_id: str, session: AsyncSession):
@@ -58,7 +57,7 @@ class ServiceHandler:
             await session.commit()
             return ManipulateServiceResponseSchema(status=True, msg="Service added")
         except Exception:
-            cls.logger.error("Add service error", exc_info=True)
+            logger.error("Add service error", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "service addition failed")
 
     @classmethod
@@ -79,7 +78,7 @@ class ServiceHandler:
                 selectinload(ServiceModel.offers),
             )
 
-            total_count, services = await cls._get_entity_result(
+            total_count, services = await get_entity_result(
                 base_query=base_query,
                 filter_dict=service_filter_dict,
                 model=ServiceModel,
@@ -118,7 +117,7 @@ class ServiceHandler:
                 total=total_count,
             )
         except Exception:
-            cls.logger.error("Failed to get services", exc_info=True)
+            logger.error("Failed to get services", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")
 
     @classmethod
@@ -138,5 +137,5 @@ class ServiceHandler:
             res = ServiceItemSchema.model_validate(service_model)
             return res
         except Exception:
-            cls.logger.error("Failed to get service by id", exc_info=True)
+            logger.error("Failed to get service by id", exc_info=True)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "server error")

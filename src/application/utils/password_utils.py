@@ -1,16 +1,18 @@
 import uuid
+import os
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
-from starlette.responses import JSONResponse
+from dotenv import load_dotenv
 
-from application import config
 from application.controllers import LOGIN_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
+
+load_dotenv()
 
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -22,8 +24,8 @@ MAX_BCRYPT_LENGTH = 72
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> JwtDC:
     try:
-        secret_key = config.security.secret_key
-        algorithm = config.security.algorithm
+        secret_key = os.getenv("SECRET_KEY")
+        algorithm = os.getenv("ALGORITHM")
 
         payload = jwt.decode(token, secret_key, algorithms=[algorithm])
         email: str = payload.get("sub")
@@ -49,9 +51,13 @@ def verify_password(password, hashed):
 
 def create_token(data: dict, refresh_token: bool = False):
     data["jti"] = str(uuid.uuid4())
-    secret_key = config.security.secret_key
-    algorithm = config.security.algorithm
-    token_expiration = config.security.token_expire if not refresh_token else config.security.refresh_token_expire
+
+    secret_key = os.getenv("SECRET_KEY")
+    algorithm = os.getenv("ALGORITHM")
+    token_expires = os.getenv("TOKEN_EXPIRE_MINUTES", 30)
+    refresh_token_expires = os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES", 60)
+
+    token_expiration = token_expires if not refresh_token else refresh_token_expires
 
     to_encode = data.copy()
     to_encode["exp"] = datetime.now(timezone.utc) + timedelta(minutes=token_expiration)
