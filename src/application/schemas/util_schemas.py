@@ -1,10 +1,11 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 
+from application.enums.services.language import LanguageCode
 from application.enums.services.country import Country
 from application.enums.services.record_status import RecordStatus
-from application.schemas.constranits import IdentificationNumber
+from application.schemas.constranits import IdentificationNumber, PhoneNumber
 
 
 class FilterEntityRequestSchema(BaseModel):
@@ -35,3 +36,16 @@ class EntityItem(BaseModel):
     email: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AddressSchema(BaseModel):
+    country: Country = Field(default=Country.SLOVAKIA)
+    city: str = Field(..., min_length=2, max_length=100)
+    street: str = Field(..., min_length=2, max_length=100)
+    house_number: str = Field(..., min_length=1, max_length=20)
+    postal_code: str = Field(..., min_length=4, max_length=20)
+
+
+class DescriptionSchema(BaseModel):
+    language_code: LanguageCode = Field(LanguageCode.EN, description="Language code for the description, e.g., 'en' for English, 'sk' for Slovak.")
+    content: str = Field(..., min_length=10, max_length=120)

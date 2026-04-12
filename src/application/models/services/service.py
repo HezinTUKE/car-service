@@ -31,6 +31,11 @@ class ServiceModel(Base):
     owner: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
     is_published: Mapped[bool] = mapped_column(nullable=True, default=False, index=True)
 
+    instagram: Mapped[str] = mapped_column(String, nullable=True, index=True)
+    facebook: Mapped[str] = mapped_column(String, nullable=True, index=True)
+    twitter: Mapped[str] = mapped_column(String, nullable=True, index=True)
+    website: Mapped[str] = mapped_column(String, nullable=True, index=True)
+
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(
         Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time())
