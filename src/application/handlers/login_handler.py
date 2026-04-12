@@ -1,100 +1,85 @@
-from fastapi import HTTPException, status, Request
-from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from loguru import logger
 
-from application.dataclasses.jwt_dc import JwtDC
 from application.enums.roles import Roles
-from application.models import UsersModel
-from application.schemas.response_schemas import AuthMethodsResponseSchema
-from application.utils.exceptions import TokenGenerationException, IncorrectDataException, UnauthorizedException
-from application.utils.password_utils import hash_password, verify_password, get_current_user, create_token
-from application.utils.redis_helper import RedisHelper
+from application.schemas.auth_request_schema import AuthRequestSchema, ConfirmUserRequestSchema
+from application.schemas.auth_response_schemas import CognitoResponseSchema, AuthResponseSchema
+from application.utils.cognito_service import CognitoService
+from application.utils.exceptions import BadRequestException
 
 
 class LoginHandler:
     @classmethod
-    async def login(cls, password: str, email: str, session: AsyncSession):
-        hashed_password = hash_password(password)
-        _query = select(UsersModel).filter(UsersModel.email == email)
-        _query_result = await session.execute(_query)
-        user: UsersModel = _query_result.scalar_one_or_none()
-
-        if not user or verify_password(hashed_password, user.password):
-            raise IncorrectDataException()
-
-        return cls._set_auth_tokens(sub=user.email, permission=user.role, user_id=user.user_id)
-
-    @classmethod
-    async def signup(cls, password: str, email: str, role: Roles, session: AsyncSession):
+    async def signup(cls, request: AuthRequestSchema):
         try:
-            query = select(UsersModel).filter(UsersModel.email == email)
-            res = await session.execute(query)
-            get_user = res.scalar_one_or_none()
+            repo = CognitoService()
+            response = repo.sign_up_user(request.password, str(request.email))
+            repo.add_user_to_group(username=str(request.email), group_name=Roles.USER)
+            return CognitoResponseSchema(response=response)
+        except Exception as e:
+            logger.exception("Error registering user", exc_info=True)
+            raise BadRequestException(detail=str(e))
 
-            if get_user:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-            user = UsersModel(email=email, password=hash_password(password), role=role)
-            session.add(user)
-            await session.commit()
-            return AuthMethodsResponseSchema(success=True)
+    @classmethod
+    async def confirm_email(cls, request: ConfirmUserRequestSchema):
+        try:
+            repo = CognitoService()
+            response = repo.confirm_user(str(request.email), request.confirmation_code)
+            return CognitoResponseSchema(response=response)
         except Exception:
-            logger.error(f"Signup error for email: {email}", exc_info=True)
-            return AuthMethodsResponseSchema(success=False)
+            logger.exception("Error confirming user", exc_info=True)
+            raise BadRequestException()
 
     @classmethod
-    async def logout(cls, request: Request, current_user: JwtDC):
-        response = JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=AuthMethodsResponseSchema(success=True).model_dump(),
-        )
-
-        refresh_token = request.cookies.get("refresh_token")
-        token_info = get_current_user(refresh_token)
-
-        redis = RedisHelper()
-        redis.revoke_token(token_info.jti)
-
-        response.delete_cookie(key="access_token")
-        response.delete_cookie(key="refresh_token")
-        return response
+    async def login(cls, request: AuthRequestSchema):
+        try:
+            repo = CognitoService()
+            return repo.login_user(str(request.email), request.password)
+        except Exception as e:
+            logger.exception("Error logging in user", exc_info=True)
+            raise BadRequestException(detail=str(e))
 
     @classmethod
-    async def refresh_token(cls, request: Request):
-        refresh_cookie = request.cookies.get("refresh_token")
-        if not refresh_cookie:
-            raise UnauthorizedException()
+    async def forgot_password(cls, email: str):
+        try:
+            repo = CognitoService()
+            response = repo.forgot_password(email)
+            return CognitoResponseSchema(response=response)
+        except Exception as e:
+            logger.exception("Error initiating forgot password flow", exc_info=True)
+            raise BadRequestException(detail=str(e))
 
-        current_user = get_current_user(refresh_cookie)
-        redis = RedisHelper()
-        if not redis.check_revoke(current_user.jti):
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token has been revoked")
+    @classmethod
+    async def reset_password(cls, email: str, new_password: str, confirmation_code: str):
+        try:
+            repo = CognitoService()
+            response = repo.reset_password(username=email, new_password=new_password, confirmation_code=confirmation_code)
+            return CognitoResponseSchema(response=response)
+        except Exception as e:
+            logger.exception("Error resetting password", exc_info=True)
+            raise BadRequestException(detail=str(e))
 
-        return cls._set_auth_tokens(
-            sub=current_user.username, permission=current_user.permission, user_id=current_user.user_id
-        )
-
-    @staticmethod
-    def _set_auth_tokens(sub: str, permission: Roles, user_id: str) -> JSONResponse:
-        data = {
-            "sub": sub,
-            "permission": permission.value,
-            "user_id": user_id,
-        }
+    @classmethod
+    async def refresh_token(cls, refresh_token: str, current_user: str):
+        if not current_user:
+            raise BadRequestException(detail="User not authenticated")
 
         try:
-            access_token = create_token(data, refresh_token=False)
-            create_token(data, refresh_token=True)
-
-            response = JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content=AuthMethodsResponseSchema(success=True, access_token=access_token).model_dump(),
-            )
-
+            repo = CognitoService()
+            token = repo.refresh_token(refresh_token)
+            return token
         except Exception:
-            logger.error(f"Token generation error", exc_info=True)
-            raise TokenGenerationException()
+            logger.exception("Error refreshing token", exc_info=True)
+            raise BadRequestException("Failed to refresh token")
 
-        return response
+    @classmethod
+    async def logout(cls, access_token: str):
+        if not access_token:
+            raise BadRequestException(detail="User not authenticated")
+
+        try:
+            repo = CognitoService()
+            response = repo.logout_user(access_token)
+            return CognitoResponseSchema(response=response)
+        except Exception:
+            logger.exception("Error logging out user", exc_info=True)
+            raise BadRequestException("Failed to log out user")

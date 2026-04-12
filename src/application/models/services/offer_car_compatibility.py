@@ -15,15 +15,16 @@ class OfferCarCompatibilityModel(Base):
         UUID(as_uuid=False), ForeignKey("offers.offer_id"), nullable=False, index=True
     )
 
-    car_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("car_types.car_type_id"), nullable=False, index=True)
-    engine_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("engine_types.engine_type_id"), nullable=False, index=True)
+    # car_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("car_types.car_type_id"), nullable=False, index=True)
+    # engine_id: Mapped[int] = mapped_column(Integer, ForeignKey("engine_types.engine_id"), nullable=False, index=True)
 
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(
         Integer, index=True, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time())
     )
 
-    car_types: Mapped["CarTypeModel"] = relationship("CarTypeModel", back_populates="offer_car_compatibilities", lazy="selectin")
-    engine_type: Mapped["EngineTypeModel"] = relationship("EngineTypeModel", back_populates="offer_car_compatibilities", lazy="selectin")
-    offers: Mapped["OfferModel"] = relationship("OfferModel", back_populates="offer_car_compatibility", lazy="selectin")
-    __table_args__ = (UniqueConstraint("offer_id", "car_type_id", "engine_type_id", name="uq_offer_car_type"),)
+    # car_types: Mapped["CarTypeModel"] = relationship("CarTypeModel", back_populates="offer_car_compatibilities", lazy="selectin")
+    # engine_type: Mapped["EngineTypeModel"] = relationship("EngineTypeModel", back_populates="offer_car_compatibilities", lazy="selectin")
+    # offers: Mapped["OfferModel"] = relationship("OfferModel", back_populates="offer_car_compatibility", lazy="selectin")
+
+    __table_args__ = (UniqueConstraint("offer_id", "car_type_id", "engine_id", name="uq_offer_car_type"),)

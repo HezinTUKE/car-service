@@ -12,4 +12,6 @@ class CarTypeModel(Base):
     car_type_name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     car_brand: Mapped["CarBrandModel"] = relationship("CarBrandModel", back_populates="car_types", lazy="selectin")
-    offer_car_compatibilities: Mapped[list["OfferCarCompatibilityModel"]] = relationship("OfferCarCompatibilityModel", back_populates="car_types", lazy="selectin")
+    # offer_car_compatibilities: Mapped[list["OfferCarCompatibilityModel"]] = relationship("OfferCarCompatibilityModel", back_populates="car_types", lazy="selectin")
+    user_car_relation: Mapped[list["UserCarRelationModel"]] = relationship("UserCarRelationModel", back_populates="car_type", lazy="selectin")
+    # car_engine_relation: Mapped[list["CarEngineRelationModel"]] = relationship("CarEngineRelationModel", back_populates="car_type", lazy="selectin")

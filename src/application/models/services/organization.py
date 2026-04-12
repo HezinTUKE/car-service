@@ -1,9 +1,12 @@
 import uuid
 import time
+
+from geoalchemy2 import WKBElement, Geometry
 from sqlalchemy import UUID, String, Text, Integer, Enum, UniqueConstraint, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.inspection import inspect
 from application.enums.services.country import Country
+from application.enums.services.record_status import RecordStatus
 from application.models.base import Base
 
 
@@ -23,17 +26,17 @@ class OrganizationModel(Base):
     postal_code: Mapped[str] = mapped_column(String, nullable=False, index=True)
     phone_number: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
-    longitude: Mapped[float] = mapped_column(Float, nullable=False)
-    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    location: Mapped[WKBElement] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=False)
     original_full_address: Mapped[str] = mapped_column(String, nullable=False, index=True)
-
     identification_number: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    status: Mapped[RecordStatus] = mapped_column(Enum(RecordStatus, native_enum=False, length=50), nullable=False, index=True, default=RecordStatus.INACTIVE)
     owner: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
 
     created_at = mapped_column(Integer, index=True, default=lambda: int(time.time()))
     updated_at = mapped_column(Integer, index=True, default=lambda: int(time.time()), onupdate=lambda: int(time.time()))
 
     services: Mapped[list["ServiceModel"]] = relationship("ServiceModel", back_populates="organization")
+    description: Mapped[list["OrganizationDescriptionModel"]] = relationship("OrganizationDescriptionModel", back_populates="organization", lazy="selectin")
 
     __table_args__ = (
         UniqueConstraint("name", "identification_number", name="uq_service_identification_number_name"),

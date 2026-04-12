@@ -1,19 +1,16 @@
-import logging
+from loguru import logger
 
-from fastapi import HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 
 from application.models.engine import SessionFactory
+from application.utils.exceptions import DBException
 
 
-class DBModel:
-    logger = logging.getLogger(" ")
-
-    @classmethod
-    async def get_session(cls):
-        async with SessionFactory() as session:
-            try:
-                yield session
-            except Exception:
-                await session.rollback()
-                cls.logger.error("DB Exception", exc_info=True)
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="DB Exception")
+async def get_session():
+    async with SessionFactory() as session:
+        try:
+            yield session
+        except SQLAlchemyError:
+            await session.rollback()
+            logger.error("DB Exception", exc_info=True)
+            raise DBException

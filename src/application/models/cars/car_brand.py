@@ -9,5 +9,6 @@ class CarBrandModel(Base):
 
     car_brand_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     car_brand_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    logo_extension: Mapped[str] = mapped_column(String, nullable=False)
 
     car_types: Mapped[list["CarTypeModel"]] = relationship("CarTypeModel", back_populates="car_brand", lazy="selectin")

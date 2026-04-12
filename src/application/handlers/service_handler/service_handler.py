@@ -1,5 +1,4 @@
 from loguru import logger
-from fastapi import HTTPException, status
 from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select

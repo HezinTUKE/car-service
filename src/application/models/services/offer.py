@@ -26,9 +26,8 @@ class OfferModel(Base):
     )
 
     services: Mapped["ServiceModel"] = relationship("ServiceModel", back_populates="offers", lazy="selectin")
-    offer_car_compatibility: Mapped[list["OfferCarCompatibilityModel"]] = relationship(
-        "OfferCarCompatibilityModel", back_populates="offers", lazy="selectin"
-    )
+    description: Mapped[list["OfferDescriptionModel"]] = relationship("OfferDescriptionModel", back_populates="offers", lazy="selectin")
+
     relation_translated_offers: Mapped[list["RelationTranslatedOfferModel"]] = relationship(
         "RelationTranslatedOfferModel",
         back_populates="offer",

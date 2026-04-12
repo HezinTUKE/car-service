@@ -1,6 +1,42 @@
 from fastapi import HTTPException, status
 
 
+class ServerException(HTTPException):
+    def __init__(
+        self,
+        detail: str = "Internal server error",
+        error_code: str = "SERVER_ERROR"
+    ):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={
+            "error_code": error_code,
+            "message": detail
+        })
+
+
+class BadRequestException(HTTPException):
+    def __init__(
+        self,
+        detail: str = "Bad request",
+        error_code: str = "BAD_REQUEST"
+    ):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail={
+            "error_code": error_code,
+            "message": detail
+        })
+
+
+class NotFoundException(HTTPException):
+    def __init__(
+        self,
+        detail: str = "Resource not found",
+        error_code: str = "NOT_FOUND"
+    ):
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail={
+            "error_code": error_code,
+            "message": detail
+        })
+
+
 class DBException(HTTPException):
     def __init__(
         self,

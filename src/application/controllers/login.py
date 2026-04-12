@@ -1,51 +1,104 @@
-from fastapi import APIRouter, Depends, Request
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Body
 from application.controllers import LOGIN_CONTROLLER_PREFIX
 from application.dataclasses.jwt_dc import JwtDC
-from application.enums.roles import Roles
+from application.deps.auth_deps import get_current_user
 from application.handlers.login_handler import LoginHandler
-from application.deps.db_deps import DBModel
-from application.schemas.response_schemas import AuthMethodsResponseSchema, ProfileResponseSchema
-from application.utils.password_utils import get_current_user
+from application.schemas.auth_request_schema import AuthRequestSchema, ConfirmUserRequestSchema, \
+    ResetPasswordRequestSchema
+from application.schemas.auth_response_schemas import AuthResponseSchema, CognitoResponseSchema, ProfileResponseSchema
 
 
 class LoginController:
     router = APIRouter(prefix=f"/{LOGIN_CONTROLLER_PREFIX}", tags=[LOGIN_CONTROLLER_PREFIX])
 
     @staticmethod
-    @router.post(path="/logout", response_model=AuthMethodsResponseSchema)
-    async def logout(request: Request, current_user: JwtDC = Depends(get_current_user)):
-        return await LoginHandler.logout(request, current_user)
-
-    @staticmethod
-    @router.post(path="/signup", response_model=AuthMethodsResponseSchema)
+    @router.post(
+        path="/signup",
+        response_model=CognitoResponseSchema,
+    )
     async def signup(
-        email: str,
-        password: str,
-        role: Roles = Roles.USER,
-        session: AsyncSession = Depends(DBModel.get_session),
+        request: AuthRequestSchema
     ):
-        result = await LoginHandler.signup(email=email, password=password, role=role, session=session)
+        result = await LoginHandler.signup(request)
         return result
 
     @staticmethod
-    @router.post(path="/signin", response_model=AuthMethodsResponseSchema)
-    async def login(
-        form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
-        session: AsyncSession = Depends(DBModel.get_session),
+    @router.post(
+        path="/confirm-email",
+        response_model=CognitoResponseSchema,
+    )
+    async def confirm_email(
+        request: ConfirmUserRequestSchema
     ):
-        return await LoginHandler.login(password=form_data.password, email=form_data.username, session=session)
+        result = await LoginHandler.confirm_email(request)
+        return result
 
     @staticmethod
-    @router.post(path="/refresh", response_model=AuthMethodsResponseSchema)
-    async def refresh_token(request: Request):
-        return await LoginHandler.refresh_token(request)
+    @router.post(
+        path="/signin",
+        response_model=AuthResponseSchema,
+    )
+    async def login(request: AuthRequestSchema):
+        result = await LoginHandler.login(request)
+        return result
 
     @staticmethod
-    @router.get(path="/profile", response_model=ProfileResponseSchema)
-    async def get_profile(current_user: JwtDC = Depends(get_current_user)):
+    @router.post(
+        path="/logout",
+        response_model=CognitoResponseSchema,
+    )
+    async def logout(
+        current_user: Annotated[JwtDC, Depends(get_current_user)],
+    ):
+        return await LoginHandler.logout(current_user.token)
+
+    @staticmethod
+    @router.post(
+        path="/refresh",
+        response_model=AuthResponseSchema,
+    )
+    async def refresh_token(
+        current_user: Annotated[JwtDC, Depends(get_current_user)],
+        refresh_token: str = Body(..., embed=True),
+    ):
+        return await LoginHandler.refresh_token(refresh_token, current_user.email)
+
+    @staticmethod
+    @router.post(
+        path="/forgot-password",
+        response_model=CognitoResponseSchema,
+    )
+    async def forgot_password(
+        email : str = Body(..., embed=True),
+    ):
+        return await LoginHandler.forgot_password(email)
+
+    @staticmethod
+    @router.post(
+        path="/reset-password",
+        response_model=CognitoResponseSchema,
+    )
+    async def reset_password(
+        request: ResetPasswordRequestSchema
+    ):
+        return await LoginHandler.reset_password(
+            email=str(request.email),
+            confirmation_code=request.confirmation_code,
+            new_password=request.new_password
+        )
+
+    @staticmethod
+    @router.get(
+        path="/profile",
+        response_model=ProfileResponseSchema
+    )
+    async def get_current_user_info(
+        current_user: Annotated[JwtDC, Depends(get_current_user)],
+    ):
         return ProfileResponseSchema(
-            username=current_user.username, permission=current_user.permission, user_id=current_user.user_id
+            user_id=current_user.user_id,
+            email=current_user.email,
+            permissions=current_user.role
         )

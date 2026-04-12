@@ -15,6 +15,7 @@ db_url = f"""postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
 engine = create_async_engine(
     db_url,
     future=True,
+    echo=True,
 )
 
 SessionFactory = async_sessionmaker(

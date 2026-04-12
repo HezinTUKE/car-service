@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr
 
 from application.enums.services.country import Country
-from application.schemas.util_schemas import PhoneNumber, IdentificationNumber
+from application.schemas.constranits import PhoneNumber, IdentificationNumber
 
 
 class AddOrganizationRequestSchema(BaseModel):

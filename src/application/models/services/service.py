@@ -17,7 +17,6 @@ class ServiceModel(Base):
         UUID(as_uuid=False), ForeignKey("organization.organization_id"), nullable=True, index=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    description: Mapped[str] = mapped_column(Text, nullable=True)
 
     country: Mapped[Country] = mapped_column(Enum(Country, native_enum=False, length=50), nullable=False, index=True)
     city: Mapped[str] = mapped_column(String, nullable=False, index=True)
@@ -41,5 +40,6 @@ class ServiceModel(Base):
         "OrganizationModel", back_populates="services", lazy="selectin"
     )
     offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services", lazy="selectin")
+    description: Mapped[list["ServiceDescriptionModel"]] = relationship("ServiceDescriptionModel", back_populates="services", lazy="selectin")
 
     __table_args__ = (UniqueConstraint("name", "identification_number", name="uq_identification_number_name"),)

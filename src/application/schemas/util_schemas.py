@@ -1,13 +1,10 @@
-from typing_extensions import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict, StringConstraints
+from pydantic import BaseModel, Field, ConfigDict
 
 from application.enums.services.country import Country
-
-
-PhoneNumber = Annotated[str, StringConstraints(min_length=7, max_length=20, pattern=r"^\+?[1-9]\d{1,14}$")]
-IdentificationNumber = Annotated[str, StringConstraints(min_length=5, max_length=50, pattern=r"^[A-Za-z0-9\-]+$")]
+from application.enums.services.record_status import RecordStatus
+from application.schemas.constranits import IdentificationNumber
 
 
 class FilterEntityRequestSchema(BaseModel):
@@ -17,6 +14,7 @@ class FilterEntityRequestSchema(BaseModel):
     city: str | None = Field(default=None, min_length=2, max_length=100)
     postal_code: str | None = Field(default=None, min_length=4, max_length=20)
     identification_number: IdentificationNumber | None = Field(default=None)
+    status: RecordStatus | None = Field(default=RecordStatus.ACTIVE)
     per_page: int = Field(default=10)
     page_num: int = Field(default=1)
 
