@@ -10,7 +10,7 @@ from application.dataclasses.services.offer_cars_relation_dc import (
     OfferDC,
     OfferCarCompatibilityModelDC,
 )
-from application.models import ServiceModel, OfferModel, OfferCarCompatibilityModel
+from application.models import ServiceModel, OfferModel
 from application.schemas.service_schemas.request_schemas.offer_schema import AddOffersRequestSchema, UpdateOfferSchema
 from application.schemas.service_schemas.response_schemas.service_schema import ManipulateServiceResponseSchema
 from application.utils.exceptions import DBException
@@ -45,7 +45,6 @@ class OffersHandler:
                 )
 
             session.add_all([OfferModel(**dc.to_dict()) for dc in offers_dc])
-            session.add_all([OfferCarCompatibilityModel(**dc.to_dict()) for dc in offers_car_compatibility_dc])
 
             await session.commit()
             await session.refresh(service_model, ["offers"])

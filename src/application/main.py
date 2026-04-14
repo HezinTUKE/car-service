@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+
+import uvicorn
 from loguru import logger
 
 from fastapi import FastAPI
@@ -43,3 +45,7 @@ app.include_router(OrganizationController.router)
 app.include_router(OfferController.router)
 app.include_router(ScheduleController.router)
 app.include_router(CMSController.router)
+
+
+def main():
+    uvicorn.run("application.main:app", host="0.0.0.0", port=8000, reload=True)

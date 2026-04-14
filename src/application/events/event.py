@@ -56,11 +56,11 @@ class RabbitProcessor:
         self.durable = os.getenv("AMQP_DURABLE", True)
 
     async def listen(self):
-        exchange = await self.channel.declare_exchange(self.exchange, "topic", durable=self.durable)
+        # exchange = await self.channel.declare_exchange(self.exchange, "topic", durable=self.durable)
         queue = await self.channel.declare_queue(self.queue, durable=self.durable)
 
         for router in ListenRabbitRouter:
-            await queue.bind(exchange, routing_key=f"*.{router.value}")
+            await queue.bind(self.exchange, routing_key=f"*.{router.value}")
 
         await queue.consume(self.process_message)
 

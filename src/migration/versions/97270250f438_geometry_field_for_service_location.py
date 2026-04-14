@@ -26,7 +26,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_offer_car_compatibility_created_at'), 'offer_car_compatibility', ['created_at'], unique=False)
     op.create_index(op.f('ix_offer_car_compatibility_updated_at'), 'offer_car_compatibility', ['updated_at'], unique=False)
     op.add_column('services', sa.Column('location', geoalchemy2.Geometry(geometry_type='POINT', srid=4326, dimension=2, from_text='ST_GeomFromEWKT', name='geometry', nullable=False), nullable=False))
-    op.create_index('idx_services_location', 'services', ['location'], unique=False, postgresql_using='gist', if_exists=True)
+    op.execute("""CREATE INDEX IF NOT EXISTS idx_services_location ON services USING gist (location)""")
     op.drop_column('services', 'latitude')
     op.drop_column('services', 'longitude')
     # ### end Alembic commands ###
