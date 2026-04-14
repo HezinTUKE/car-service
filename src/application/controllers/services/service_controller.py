@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.controllers import SERVICE_CONTROLLER_PREFIX
@@ -25,6 +25,7 @@ class ServiceController:
     @staticmethod
     @router.post("/add-service", response_model=ManipulateServiceResponseSchema)
     async def add_service(
+        file: UploadFile,
         current_user: Annotated[JwtDC, Depends(get_current_user)],
         request_schema: AddServiceRequestSchema = Body(...),
         session: AsyncSession = Depends(get_session),
