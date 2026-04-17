@@ -216,38 +216,6 @@ class ServiceHandler:
 
             service_query_res = await session.execute(service_query)
             service = service_query_res.scalar_one_or_none()
-            # res = ServiceItemSchema.model_validate(service_model)
-            geo = to_shape(service.location)
-
-            # service_schema = ServiceResponseSchema(
-            #     service_id=service.service_id,
-            #     name=service.name,
-            #     description=service.description,
-            #     phone_number=service.phone_number,
-            #     identification_number=service.identification_number,
-            #     email=service.email,
-            #     longitude=geo.x,
-            #     latitude=geo.y,
-            #     original_full_address=service.address,
-            #     organization_id=service.organization_id,
-            #     user_id=service.user_id,
-            # )
-            #
-            # offers = [
-            #     OffersSchema(
-            #         offer_id=offer.offer_id,
-            #         offer_type=offer.offer_type,
-            #         description=offer.description,
-            #         base_price=offer.base_price,
-            #         sale=offer.sale,
-            #         currency=offer.currency,
-            #         estimated_duration_minutes=offer.estimated_duration_minutes,
-            #     ) for offer in service.offers
-            # ]
-
-            # service_schema = ServiceResponseSchema.model_validate(service)
-            # offers = [OffersSchema.model_validate(offer) for offer in service.offers]
-
             return ServiceItemSchema.model_validate(service)
         except Exception:
             logger.exception("Failed to get service by id", exc_info=True)
