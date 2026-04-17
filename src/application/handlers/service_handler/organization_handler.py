@@ -46,7 +46,7 @@ class OrganizationHandler:
 
             model = OrganizationModel(
                 **request_schema.model_dump(
-                    exclude={"longitude", "latitude"}
+                    exclude={"latitude", "longitude"}
                 ),
                 owner=user_id,
                 location=from_shape(Point(location.longitude, location.latitude), srid=4326),

@@ -30,7 +30,7 @@ class OffersSchema(BaseModel):
     sale: int
     currency: str
     estimated_duration_minutes: int
-    offer_car_compatibility: list[CarCompatibilitySchema] = Field(default=list)
+    # offer_car_compatibility: list[CarCompatibilitySchema] = Field(default=list)
 
     model_config = ConfigDict(
         from_attributes=True,

@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Enum, String, ForeignKey, UUID
+from sqlalchemy import Integer, Enum, String, ForeignKey, UUID, UniqueConstraint
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from application.enums.services.language import LanguageCode
@@ -18,6 +18,10 @@ class OfferDescriptionModel(Base):
 
     offers: Mapped["OfferModel"] = relationship("OfferModel", back_populates="description", lazy="selectin")
 
+    __table_args__ = (
+        UniqueConstraint("offer_id", "language_code", name="uq_offer_description_language"),
+    )
+
 
 class ServiceDescriptionModel(Base):
     __tablename__ = "service_description"
@@ -31,6 +35,9 @@ class ServiceDescriptionModel(Base):
 
     services: Mapped["ServiceModel"] = relationship("ServiceModel", back_populates="description", lazy="selectin")
 
+    __table_args__ = (
+        UniqueConstraint("service_id", "language_code", name="uq_service_description_language"),
+    )
 
 class OrganizationDescriptionModel (Base):
     __tablename__ = "organization_description"
@@ -43,3 +50,7 @@ class OrganizationDescriptionModel (Base):
     content: Mapped[str] = mapped_column(String(120), nullable=False)
 
     organization: Mapped["OrganizationModel"] = relationship("OrganizationModel", back_populates="description", lazy="selectin")
+
+    __table_args__ = (
+        UniqueConstraint("organization_id", "language_code", name="uq_organization_description_language"),
+    )

@@ -49,3 +49,7 @@ class AddressSchema(BaseModel):
 class DescriptionSchema(BaseModel):
     language_code: LanguageCode = Field(LanguageCode.EN, description="Language code for the description, e.g., 'en' for English, 'sk' for Slovak.")
     content: str = Field(..., min_length=10, max_length=120)
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

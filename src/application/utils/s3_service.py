@@ -1,6 +1,7 @@
 import os.path
 from io import BytesIO
 
+from dotenv import load_dotenv
 from loguru import logger
 from boto3 import Session
 from boto3.s3.transfer import TransferConfig
@@ -9,14 +10,17 @@ from fastapi import UploadFile
 
 from application.utils.exceptions import BadRequestException, ServerException
 
+load_dotenv()
+
 
 class S3Service:
-    bucket_name: str = "car-service-cs"
     chunk_size: int = 1024 * 1024 * 5
     file_max_size: int = 1024 * 1024 * 5
+    extension: str = ".webp"
 
     def __init__(self, allowed_extensions: tuple = None):
-        session = Session(profile_name="own")
+        session = Session(profile_name="default")
+        self.bucket_name = os.getenv("AWS_BUCKET_NAME")
         self.client = session.client("s3")
         self.allowed_extensions = allowed_extensions
 
@@ -35,8 +39,7 @@ class S3Service:
 
         try:
             file_bytes = await file.read()
-            file_extension = file.filename.split(".")[-1]
-            file_name = f"{file_name}.{file_extension}"
+            file_name = f"{file_name}{self.extension}"
 
             res = self.client.upload_fileobj(
                 Fileobj=BytesIO(file_bytes),

@@ -1,7 +1,7 @@
 import time
 import uuid
 
-from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint, Text
+from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geometry, WKBElement
 
@@ -16,6 +16,7 @@ class ServiceModel(Base):
     organization_id: Mapped[str] = mapped_column(
         UUID(as_uuid=False), ForeignKey("organization.organization_id"), nullable=True, index=True
     )
+    user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
     country: Mapped[Country] = mapped_column(Enum(Country, native_enum=False, length=50), nullable=False, index=True)
@@ -28,8 +29,8 @@ class ServiceModel(Base):
     location: Mapped[WKBElement] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=False)
     original_full_address: Mapped[str] = mapped_column(String, nullable=False, index=True)
     identification_number: Mapped[str] = mapped_column(String, nullable=False)
-    owner: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
-    is_published: Mapped[bool] = mapped_column(nullable=True, default=False, index=True)
+    is_published: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False, index=True)
+    use_organization_logo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     instagram: Mapped[str] = mapped_column(String, nullable=True, index=True)
     facebook: Mapped[str] = mapped_column(String, nullable=True, index=True)
