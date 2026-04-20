@@ -12,5 +12,5 @@ async def get_session():
             yield session
         except SQLAlchemyError:
             await session.rollback()
-            logger.error("DB Exception", exc_info=True)
+            logger.exception("DB Exception", exc_info=True)
             raise DBException

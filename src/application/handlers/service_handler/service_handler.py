@@ -1,11 +1,15 @@
 from fastapi import UploadFile, Response
+from geoalchemy2 import Geography
+from geoalchemy2.functions import ST_Distance
 from loguru import logger
 from geopy import Location
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, type_coerce
 from sqlalchemy.orm import selectinload
 from shapely.geometry import Point
 from geoalchemy2.shape import from_shape, to_shape
+
+from application.enums.record_state import RecordState
 from application.models import ServiceModel, OrganizationModel, ServiceDescriptionModel
 from application.schemas.service_schemas.request_schemas.service_schema import (
     FilterServiceRequestSchema,
@@ -13,7 +17,7 @@ from application.schemas.service_schemas.request_schemas.service_schema import (
 )
 from application.schemas.service_schemas.response_schemas.service_schema import (
     ServiceItemSchema,
-    ServiceItemsResponseSchema, ServiceResponseSchema,
+    ServiceItemsResponseSchema, ServiceResponseSchema, ServiceListItemSchema,
 )
 from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
 from application.utils.exceptions import DBException, BadRequestException, ServerException
@@ -81,23 +85,8 @@ class ServiceHandler:
 
             session.add_all(descriptions)
             await session.commit()
-
-            return ServiceResponseSchema(
-                service_id=service_model.service_id,
-                name=service_model.name,
-                description=service_schema.description,
-                phone_number=service_model.phone_number,
-                identification_number=service_model.identification_number,
-                email=service_model.email,
-                longitude=location.longitude,
-                latitude=location.latitude,
-                original_full_address=location.address,
-                organization_id=service_model.organization_id,
-                user_id=service_model.user_id,
-            )
-
+            return ServiceResponseSchema.model_validate(service_model)
         except Exception:
-            await session.rollback()
             logger.exception("Add service error", exc_info=True)
             raise
 
@@ -153,7 +142,30 @@ class ServiceHandler:
             base_query = select(ServiceModel)
 
             if service_filter_dict:
+                service_filter_dict.pop("current_location")
                 base_query = base_query.filter_by(**service_filter_dict)
+
+            if service_filter.current_location:
+                latitude = service_filter.current_location.split(",")[0].strip()
+                longitude = service_filter.current_location.split(",")[1].strip()
+
+                latitude = float(latitude)
+                longitude = float(longitude)
+
+                user_location = func.ST_SetSRID(func.ST_MakePoint(
+                    longitude, latitude), 4326
+                )
+
+                geom_geo = type_coerce(ServiceModel.location, Geography)
+                point_geo = type_coerce(user_location, Geography)
+
+                base_query = (
+                    base_query
+                    .add_columns(
+                        ST_Distance(geom_geo, point_geo).label("distance_meters")
+                    )
+                    .order_by(ST_Distance(geom_geo, point_geo))
+                )
 
             base_query = base_query.options(
                 selectinload(ServiceModel.organization),
@@ -167,40 +179,32 @@ class ServiceHandler:
                 limit=limit,
                 offset=offset,
                 session=session,
+                has_extra_fields=service_filter.current_location is not None,
             )
 
-            return ServiceItemsResponseSchema(
-                data=[
-                    ServiceItemSchema(
-                        service_id=service.service_id,
-                        name=service.name,
-                        description=service.description,
-                        country=service.country,
-                        city=service.city,
-                        street=service.street,
-                        house_number=service.house_number,
-                        postal_code=service.postal_code,
-                        phone_number=service.phone_number,
-                        identification_number=service.identification_number,
-                        email=service.email,
-                        longitude=service.longitude,
-                        latitude=service.latitude,
-                        original_full_address=service.original_full_address,
-                        organization_id=service.organization_id,
-                        organization_name=service.organization.name if service.organization else None,
-                        offers=(
-                            [OffersSchema.model_validate(offer).model_dump() for offer in service.offers]
-                            if service.offers
-                            else []
-                        ),
+            s3 = S3Service()
+
+            data = []
+
+            for service in services:
+                service_model = service["ServiceModel"] if service_filter.current_location is not None else service
+                data.append(
+                    ServiceListItemSchema(
+                        service_id=service_model.service_id,
+                        logo=await s3.generate_persist_url(file_name=service_model.service_id, prefix=["services", "logo"]),
+                        name=service_model.name,
+                        distance_meters=service.get("distance_meters") if service_filter.current_location is not None else None,
                     )
-                    for service in services
-                ],
+                )
+
+            res = ServiceItemsResponseSchema(
+                data=data,
                 total=total_count,
             )
+            return res
         except Exception:
             logger.exception("Failed to get services", exc_info=True)
-            raise DBException()
+            raise ServerException()
 
     @classmethod
     async def get_service_by_id(cls, service_id: str, session: AsyncSession):
@@ -209,14 +213,36 @@ class ServiceHandler:
                 select(ServiceModel)
                 .filter(ServiceModel.service_id == service_id)
                 .options(
-                    selectinload(ServiceModel.offers),
                     selectinload(ServiceModel.description),
+                    selectinload(ServiceModel.offers),
                 )
             )
 
             service_query_res = await session.execute(service_query)
             service = service_query_res.scalar_one_or_none()
-            return ServiceItemSchema.model_validate(service)
+
+            s3 = S3Service()
+
+            res = ServiceItemSchema.model_validate(service)
+            res.logo = await s3.generate_persist_url(file_name=service.service_id, prefix=["services", "logo"])
+            res.photos = await s3.generate_persist_list_urls(prefix=["services", "photos", service.service_id])
+
+            return res
         except Exception:
             logger.exception("Failed to get service by id", exc_info=True)
-            raise ServerException()
+            raise
+
+    @classmethod
+    async def archive_service(cls, service_id: str, session: AsyncSession):
+        try:
+            service = await session.get(ServiceModel, service_id)
+
+            if not service:
+                raise BadRequestException("Service not found")
+
+            service.state = RecordState.ARCHIVED
+            await session.commit()
+            return Response(status_code=200, content="ok")
+        except Exception:
+            logger.exception("Failed to archive service", exc_info=True)
+            raise

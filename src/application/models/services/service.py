@@ -5,6 +5,7 @@ from sqlalchemy import UUID, Integer, ForeignKey, String, Enum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geometry, WKBElement
 
+from application.enums.record_state import RecordState
 from application.enums.services.country import Country
 from application.models.base import Base
 
@@ -36,6 +37,8 @@ class ServiceModel(Base):
     facebook: Mapped[str] = mapped_column(String, nullable=True, index=True)
     twitter: Mapped[str] = mapped_column(String, nullable=True, index=True)
     website: Mapped[str] = mapped_column(String, nullable=True, index=True)
+
+    state: Mapped[RecordState] = mapped_column(Enum(RecordState, native_enum=False, length=20), nullable=False, default=RecordState.PENDING, index=True)
 
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(

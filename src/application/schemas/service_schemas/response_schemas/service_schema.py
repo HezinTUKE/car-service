@@ -56,6 +56,14 @@ class ServiceItemSchema(ServiceResponseSchema):
     offers: list[OffersSchema] = Field(default=list)
 
 
+class ServiceListItemSchema(BaseModel):
+    service_id: str = Field(..., description="Service ID")
+    logo: HttpUrl = Field(..., description="Service logo")
+    name: str = Field(..., description="Service name")
+    distance_meters: float | None = Field(default=None, description="Service distance in meters")
+
+    model_config = ConfigDict(from_attributes=True)
+
 class ServiceItemsResponseSchema(BaseModel):
-    data: list[ServiceItemSchema]
+    data: list[ServiceListItemSchema]
     total: int

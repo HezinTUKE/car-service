@@ -3,11 +3,16 @@ from uuid import UUID
 from pydantic import Field, BaseModel, EmailStr, HttpUrl, model_validator
 
 from application.schemas.constranits import PhoneNumber, IdentificationNumber
-from application.schemas.util_schemas import FilterEntityRequestSchema, AddressSchema, DescriptionSchema
+from application.schemas.util_schemas import AddressSchema, DescriptionSchema
 
 
-class FilterServiceRequestSchema(FilterEntityRequestSchema):
-    service_id: UUID | None = Field(default=None)
+class FilterServiceRequestSchema(BaseModel):
+    organization_id: UUID | None = Field(default=None, description="Organization ID")
+    name: str | None = Field(default=None, description="Service Name")
+    city: str | None = Field(default=None, description="City")
+    country: str | None = Field(default=None, description="Country")
+    street: str | None = Field(default=None, description="Street Address")
+    current_location: str | None = Field(default=None, description="Current location in format 'latitude,longitude'")
 
 
 class AddServiceRequestSchema(BaseModel):

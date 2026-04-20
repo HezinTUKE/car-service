@@ -55,6 +55,7 @@ class S3Service:
 
     async def generate_persist_url(self, prefix: list[str], file_name: str, expiration: int = 3600) -> str:
         try:
+            file_name = f"{file_name}{self.extension}"
             url = self.client.generate_presigned_url(
                 ClientMethod="get_object",
                 ExpiresIn=expiration,
@@ -67,3 +68,24 @@ class S3Service:
         except Exception:
             logger.exception("Error generating presigned URL", exc_info=True)
             raise ServerException("Failed to generate presigned URL")
+
+    async def generate_persist_list_urls(self, prefix: list[str], expiration: int = 3600) -> list[str]:
+        try:
+            urls = []
+
+            response = self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=os.path.join(*prefix))
+            for obj in response.get("Contents", []):
+                url = self.client.generate_presigned_url(
+                    ClientMethod="get_object",
+                    ExpiresIn=expiration,
+                    Params={
+                        "Bucket": self.bucket_name,
+                        "Key": obj["Key"],
+                    }
+                )
+                urls.append(url)
+
+            return urls
+        except Exception:
+            logger.exception("Error generating presigned URLs", exc_info=True)
+            raise ServerException("Failed to generate presigned URLs")
