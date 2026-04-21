@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 
-from application.enums.roles import Roles
+from application.enums.groups import Groups
 
 
 class CognitoResponseSchema(BaseModel):
@@ -16,7 +16,7 @@ class AuthMethodsResponseSchema(BaseModel):
 class ProfileResponseSchema(BaseModel):
     user_id: str
     email: EmailStr
-    permissions: list[Roles] = Field(default_factory=list)
+    permissions: list[Groups] = Field(default_factory=list)
 
 
 class AuthResponseSchema(BaseModel):

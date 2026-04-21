@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, Form, Depends
 from pydantic import Discriminator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from application.dataclasses.jwt_dc import JwtDC
+from application.dto.jwt_dc import JwtDC
 from application.deps.auth_deps import get_current_user
 from application.deps.db_deps import get_session
 from application.handlers.cms_handler.cms_car_handler import CMSCarHandler

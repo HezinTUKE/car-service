@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import UUID, String, Integer, Enum
 
-from application.enums.roles import Roles
+from application.enums.groups import Groups
 from application.models.base import Base
 
 
@@ -16,9 +16,9 @@ class UsersModel(Base):
     password: Mapped[str] = mapped_column(String, index=True, nullable=False)
     created_at: Mapped[int] = mapped_column(Integer, index=True, default=int(time.time()))
     updated_at: Mapped[int] = mapped_column(Integer, index=True, default=int(time.time()), onupdate=int(time.time()))
-    role: Mapped[Roles] = mapped_column(
-        Enum(Roles, length=50, native_enum=False),
+    role: Mapped[Groups] = mapped_column(
+        Enum(Groups, length=50, native_enum=False),
         nullable=False,
-        default=Roles.USER,
-        server_default=Roles.USER.name,
+        default=Groups.USER,
+        server_default=Groups.USER.name,
     )

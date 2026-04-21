@@ -8,8 +8,9 @@ from loguru import logger
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
-from application.enums.roles import Roles
+from application.enums.groups import Groups
 from application.schemas.auth_response_schemas import AuthResponseSchema
+from application.utils.exceptions import BadRequestException
 
 load_dotenv()
 
@@ -36,8 +37,11 @@ class CognitoService:
             logger.exception("Error signing up user", exc_info=True)
             raise e
 
-    def add_user_to_group(self, username: str, group_name: Roles):
+    def add_user_to_group(self, username: str, group_name: Groups):
         try:
+            if not username:
+                raise BadRequestException("Username is required to add user to group")
+
             response = self.client.admin_add_user_to_group(
                 UserPoolId=os.getenv("AWS_USER_POOL_ID"),
                 Username=username,

@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from application.dataclasses.jwt_dc import JwtDC
-from application.enums.roles import Roles
+from application.dto.jwt_dc import JwtDC
+from application.enums.groups import Groups
 from application.enums.services.record_status import RecordStatus
 from application.models.services.organization import OrganizationModel
 from application.schemas.service_schemas.request_schemas.organization_schema import AddOrganizationRequestSchema
@@ -92,7 +92,7 @@ class OrganizationHandler:
             _query_result = await session.execute(_query)
             organization: OrganizationModel = _query_result.scalar_one_or_none()
 
-            if organization and organization.owner == current_user.user_id or current_user.permission == Roles.ADMIN:
+            if organization and organization.owner == current_user.user_id or current_user.permission == Groups.ADMIN:
                 organization.status = RecordStatus.ARCHIVED
 
             await session.commit()

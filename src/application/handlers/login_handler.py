@@ -1,6 +1,6 @@
 from loguru import logger
 
-from application.enums.roles import Roles
+from application.enums.groups import Groups
 from application.schemas.auth_request_schema import AuthRequestSchema, ConfirmUserRequestSchema
 from application.schemas.auth_response_schemas import CognitoResponseSchema, AuthResponseSchema
 from application.utils.cognito_service import CognitoService
@@ -13,7 +13,7 @@ class LoginHandler:
         try:
             repo = CognitoService()
             response = repo.sign_up_user(request.password, str(request.email))
-            repo.add_user_to_group(username=str(request.email), group_name=Roles.USER)
+            repo.add_user_to_group(username=str(request.email), group_name=Groups.USER)
             return CognitoResponseSchema(response=response)
         except Exception as e:
             logger.exception("Error registering user", exc_info=True)

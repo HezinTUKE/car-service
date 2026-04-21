@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Body
 from application.controllers import LOGIN_CONTROLLER_PREFIX
-from application.dataclasses.jwt_dc import JwtDC
+from application.dto.jwt_dc import JwtDC
 from application.deps.auth_deps import get_current_user
 from application.handlers.login_handler import LoginHandler
 from application.schemas.auth_request_schema import AuthRequestSchema, ConfirmUserRequestSchema, \

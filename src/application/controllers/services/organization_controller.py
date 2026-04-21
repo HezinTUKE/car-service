@@ -5,9 +5,9 @@ from fastapi import APIRouter, UploadFile, Depends, Body, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.controllers import ORGANIZATION_CONTROLLER_PREFIX
-from application.dataclasses.jwt_dc import JwtDC
+from application.dto.jwt_dc import JwtDC
 from application.deps.auth_deps import get_current_user
-from application.enums.roles import Roles
+from application.enums.groups import Groups
 from application.handlers.service_handler.organization_handler import OrganizationHandler
 from application.deps.db_deps import get_session
 from application.schemas.service_schemas.request_schemas.organization_schema import AddOrganizationRequestSchema

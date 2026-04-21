@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Body, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.controllers import SERVICE_CONTROLLER_PREFIX
-from application.dataclasses.jwt_dc import JwtDC
+from application.dto.jwt_dc import JwtDC
 from application.deps.auth_deps import get_current_user
 from application.handlers.service_handler.service_handler import ServiceHandler
 from application.deps.db_deps import get_session
@@ -27,7 +27,7 @@ class ServiceController:
         session: Annotated[AsyncSession, Depends(get_session)],
         request_schema: AddServiceRequestSchema = Body(...),
     ):
-        return await ServiceHandler.add_service(request_schema, current_user.user_id, session)
+        return await ServiceHandler.add_service(request_schema, current_user, session)
 
     @staticmethod
     @router.post("/upload-logo", response_model=ServiceResponseSchema)
@@ -56,6 +56,15 @@ class ServiceController:
         session: AsyncSession = Depends(get_session),
     ):
         return await ServiceHandler.get_services(service_filter, session)
+
+    @staticmethod
+    @router.put("/archive-service")
+    async def archive_service(
+        service_id: str,
+        session: Annotated[AsyncSession, Depends(get_session)],
+        current_user: Annotated[JwtDC, Depends(get_current_user)],
+    ):
+        return await ServiceHandler.archive_service(service_id, session, current_user.user_id)
 
     @staticmethod
     @router.get("/get-services-by-id", response_model=ServiceItemSchema)

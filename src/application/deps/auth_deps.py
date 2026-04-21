@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 import requests
 from loguru import logger
 
-from application.dataclasses.jwt_dc import JwtDC
-from application.enums.roles import Roles
+from application.dto.jwt_dc import JwtDC
+from application.enums.groups import Groups
 
 load_dotenv()
 
@@ -49,7 +49,7 @@ def verify_token(token: str):
             user_id=payload["sub"],
             token=token,
             token_type=token_use,
-            role=payload.get("cognito:groups", [Roles.USER.value])
+            role=payload.get("cognito:groups", [Groups.USER.value])
         )
     except Exception:
         logger.exception("Token verification failed", exc_info=True)

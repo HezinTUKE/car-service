@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.controllers import OFFER_CONTROLLER_PREFIX
-from application.dataclasses.jwt_dc import JwtDC
+from application.dto.jwt_dc import JwtDC
 from application.deps.auth_deps import get_current_user
 from application.handlers.service_handler.offers_handler import OffersHandler
 from application.deps.db_deps import get_session

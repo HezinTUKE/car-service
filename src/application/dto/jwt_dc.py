@@ -2,7 +2,7 @@ from dataclasses import dataclass,  field
 
 from dataclasses_json import dataclass_json, Undefined, DataClassJsonMixin
 
-from application.enums.roles import Roles
+from application.enums.groups import Groups
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
@@ -12,4 +12,4 @@ class JwtDC(DataClassJsonMixin):
     token_type: str
     token: str
     email: str | None = None
-    role: list[Roles] = field(default_factory=list)
+    role: list[Groups] = field(default_factory=list)

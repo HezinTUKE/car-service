@@ -9,6 +9,8 @@ from sqlalchemy.orm import selectinload
 from shapely.geometry import Point
 from geoalchemy2.shape import from_shape, to_shape
 
+from application.dto.jwt_dc import JwtDC
+from application.enums.groups import Groups
 from application.enums.record_state import RecordState
 from application.models import ServiceModel, OrganizationModel, ServiceDescriptionModel
 from application.schemas.service_schemas.request_schemas.service_schema import (
@@ -20,6 +22,7 @@ from application.schemas.service_schemas.response_schemas.service_schema import 
     ServiceItemsResponseSchema, ServiceResponseSchema, ServiceListItemSchema,
 )
 from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
+from application.utils.cognito_service import CognitoService
 from application.utils.exceptions import DBException, BadRequestException, ServerException
 from application.utils.get_location import get_location
 from application.utils.handler_helpers import get_entity_result
@@ -27,9 +30,10 @@ from application.utils.s3_service import S3Service
 
 
 class ServiceHandler:
+    cognito = CognitoService()
 
     @classmethod
-    async def add_service(cls, service_schema: AddServiceRequestSchema, user_id: str, session: AsyncSession):
+    async def add_service(cls, service_schema: AddServiceRequestSchema, current_user: JwtDC, session: AsyncSession):
         location: Location = await get_location(
             country=service_schema.address.country,
             city=service_schema.address.city,
@@ -62,7 +66,7 @@ class ServiceHandler:
                 postal_code=service_schema.address.postal_code,
                 phone_number=service_schema.phone_number,
                 email=service_schema.email,
-                user_id=user_id,
+                user_id=current_user.user_id,
                 location=from_shape(Point(location.longitude, location.latitude), srid=4326),
                 original_full_address=location.address,
                 is_published=False,
@@ -85,6 +89,9 @@ class ServiceHandler:
 
             session.add_all(descriptions)
             await session.commit()
+
+            cls.cognito.add_user_to_group(username=current_user.email, group_name=Groups.SERVICE_ADMIN)
+
             return ServiceResponseSchema.model_validate(service_model)
         except Exception:
             logger.exception("Add service error", exc_info=True)
@@ -187,11 +194,17 @@ class ServiceHandler:
             data = []
 
             for service in services:
-                service_model = service["ServiceModel"] if service_filter.current_location is not None else service
+                service_model: ServiceModel = service["ServiceModel"] if service_filter.current_location is not None else service
+
+                prefix = ["services", "logo"] if service_model.use_organization_logo else ["organizations", "logo"]
+                file_name = str(service_model.service_id) if service_model.use_organization_logo else str(service_model.organization.organization_id)
+
+                logo = await s3.generate_persist_url(file_name=file_name, prefix=prefix)
+
                 data.append(
                     ServiceListItemSchema(
                         service_id=service_model.service_id,
-                        logo=await s3.generate_persist_url(file_name=service_model.service_id, prefix=["services", "logo"]),
+                        logo=logo,
                         name=service_model.name,
                         distance_meters=service.get("distance_meters") if service_filter.current_location is not None else None,
                     )
@@ -233,12 +246,15 @@ class ServiceHandler:
             raise
 
     @classmethod
-    async def archive_service(cls, service_id: str, session: AsyncSession):
+    async def archive_service(cls, service_id: str, session: AsyncSession, user_id: str):
         try:
             service = await session.get(ServiceModel, service_id)
 
             if not service:
                 raise BadRequestException("Service not found")
+
+            if service.user_id != user_id:
+                raise BadRequestException("You don't have permission to archive this service")
 
             service.state = RecordState.ARCHIVED
             await session.commit()
