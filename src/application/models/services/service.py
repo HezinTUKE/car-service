@@ -18,6 +18,7 @@ class ServiceModel(Base):
         UUID(as_uuid=False), ForeignKey("organization.organization_id"), nullable=True, index=True
     )
     user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    approved_by: Mapped[str] = mapped_column(String, nullable=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
     country: Mapped[Country] = mapped_column(Enum(Country, native_enum=False, length=50), nullable=False, index=True)
@@ -30,7 +31,6 @@ class ServiceModel(Base):
     location: Mapped[WKBElement] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=False)
     original_full_address: Mapped[str] = mapped_column(String, nullable=False, index=True)
     identification_number: Mapped[str] = mapped_column(String, nullable=False)
-    is_published: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False, index=True)
     use_organization_logo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     instagram: Mapped[str] = mapped_column(String, nullable=True, index=True)

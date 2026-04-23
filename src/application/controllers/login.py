@@ -100,5 +100,5 @@ class LoginController:
         return ProfileResponseSchema(
             user_id=current_user.user_id,
             email=current_user.email,
-            permissions=current_user.role
+            permissions=current_user.groups
         )

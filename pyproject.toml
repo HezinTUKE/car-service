@@ -40,6 +40,7 @@ geoalchemy2 =  "^0.18.1"
 shapely = "^2.1.2"
 loguru = "^0.7.3"
 boto3 = "^1.42.73"
+stripe = "^15.0.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.3"

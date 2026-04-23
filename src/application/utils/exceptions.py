@@ -85,6 +85,18 @@ class IncorrectDataException(HTTPException):
         })
 
 
+class ForbiddenException(HTTPException):
+    def __init__(
+        self,
+        detail: str = "Forbidden",
+        error_code: str = "FORBIDDEN"
+    ):
+        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail={
+            "error_code": error_code,
+            "message": detail
+        })
+
+
 class UnauthorizedException(HTTPException):
     def __init__(
         self,

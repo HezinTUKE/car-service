@@ -12,4 +12,4 @@ class JwtDC(DataClassJsonMixin):
     token_type: str
     token: str
     email: str | None = None
-    role: list[Groups] = field(default_factory=list)
+    groups: list[Groups] = field(default_factory=list)

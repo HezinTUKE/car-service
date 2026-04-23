@@ -3,6 +3,7 @@ from geoalchemy2 import Geography
 from geoalchemy2.functions import ST_Distance
 from loguru import logger
 from geopy import Location
+from requests import session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, type_coerce
 from sqlalchemy.orm import selectinload
@@ -23,7 +24,7 @@ from application.schemas.service_schemas.response_schemas.service_schema import 
 )
 from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
 from application.utils.cognito_service import CognitoService
-from application.utils.exceptions import DBException, BadRequestException, ServerException
+from application.utils.exceptions import DBException, BadRequestException, ServerException, ForbiddenException
 from application.utils.get_location import get_location
 from application.utils.handler_helpers import get_entity_result
 from application.utils.s3_service import S3Service
@@ -54,7 +55,6 @@ class ServiceHandler:
 
             if not org_model:
                 raise BadRequestException("organization not found")
-
         try:
             service_model = ServiceModel(
                 name=service_schema.name,
@@ -69,7 +69,6 @@ class ServiceHandler:
                 user_id=current_user.user_id,
                 location=from_shape(Point(location.longitude, location.latitude), srid=4326),
                 original_full_address=location.address,
-                is_published=False,
                 instagram=service_schema.instagram.encoded_string() or None,
                 facebook=service_schema.facebook.encoded_string() or None,
                 twitter=service_schema.twitter.encoded_string() or None,
@@ -90,19 +89,22 @@ class ServiceHandler:
             session.add_all(descriptions)
             await session.commit()
 
-            cls.cognito.add_user_to_group(username=current_user.email, group_name=Groups.SERVICE_ADMIN)
+            cls.cognito.add_user_to_group(username=current_user.user_id, group_name=Groups.PENDING_SERVICE_ADMIN)
 
             return ServiceResponseSchema.model_validate(service_model)
         except Exception:
+            await session.rollback()
             logger.exception("Add service error", exc_info=True)
             raise
 
     @classmethod
-    async def upload_logo(cls, service_id: str, logo: UploadFile, session: AsyncSession):
+    async def upload_logo(cls, service_id: str, logo: UploadFile, session: AsyncSession, user_id: str):
         try:
             service = await session.get(ServiceModel, service_id)
             if not service:
                 raise BadRequestException("Service not found")
+            if service.user_id != user_id:
+                raise ForbiddenException("You are not allowed to upload photos")
 
             s3 = S3Service(allowed_extensions=("jpg", "jpeg", "png", "webp"))
             await s3.upload_file_to_s3(
@@ -116,7 +118,7 @@ class ServiceHandler:
             raise
 
     @classmethod
-    async def upload_photos(cls, service_id: str, photos: list[UploadFile], session: AsyncSession):
+    async def upload_photos(cls, service_id: str, photos: list[UploadFile], session: AsyncSession, user_id: str):
         try:
             if len(photos) > 5:
                 raise BadRequestException("You can upload up to 5 photos")
@@ -124,6 +126,8 @@ class ServiceHandler:
             service = await session.get(ServiceModel, service_id)
             if not service:
                 raise BadRequestException("Service not found")
+            if service.user_id != user_id:
+                raise ForbiddenException("You are not allowed to upload photos")
 
             s3 = S3Service(allowed_extensions=("jpg", "jpeg", "png", "webp"))
             for photo in photos:
@@ -252,8 +256,7 @@ class ServiceHandler:
 
             if not service:
                 raise BadRequestException("Service not found")
-
-            if service.user_id != user_id:
+            elif service.user_id != user_id:
                 raise BadRequestException("You don't have permission to archive this service")
 
             service.state = RecordState.ARCHIVED
@@ -261,4 +264,29 @@ class ServiceHandler:
             return Response(status_code=200, content="ok")
         except Exception:
             logger.exception("Failed to archive service", exc_info=True)
+            raise
+
+    @classmethod
+    async def approve_service(cls, service_id: str,  session: AsyncSession, current_user: JwtDC):
+        try:
+            service = await session.get(ServiceModel, service_id)
+
+            if not service:
+                raise BadRequestException("Service not found")
+            elif service.state == RecordState.ACTIVE:
+                raise BadRequestException("Service is already active")
+
+            if Groups.MODERATOR in current_user.groups or Groups.ADMIN in current_user.groups:
+                pass
+            elif service.user_id == current_user.user_id:
+                pass
+            else:
+                raise BadRequestException("You don't have permission to approve this service")
+
+            session.add(ServiceModel(service_id=service_id, state=RecordState.ACTIVE))
+            await session.commit()
+
+            return Response(status_code=200, content="ok")
+        except Exception:
+            logger.exception("Failed to approve service", exc_info=True)
             raise

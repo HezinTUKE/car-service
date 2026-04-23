@@ -1,4 +1,5 @@
 import os
+from typing import Annotated
 
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer
@@ -49,13 +50,21 @@ def verify_token(token: str):
             user_id=payload["sub"],
             token=token,
             token_type=token_use,
-            role=payload.get("cognito:groups", [Groups.USER.value])
+            groups=payload.get("cognito:groups", [Groups.USER.value])
         )
     except Exception:
         logger.exception("Token verification failed", exc_info=True)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
-def get_current_user(credential=Depends(security)):
+def get_current_user(credential: Annotated[HTTPBearer, Depends(security)]):
     payload = credential.credentials
     return verify_token(payload)
+
+
+def require_groups(allowed_groups: tuple):
+    def dependency(jwt_dc=Depends(get_current_user)):
+        if not any(group.value in jwt_dc.groups for group in allowed_groups):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return jwt_dc
+    return dependency

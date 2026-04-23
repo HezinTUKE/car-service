@@ -17,14 +17,14 @@ class FilterServiceRequestSchema(BaseModel):
 
 class AddServiceRequestSchema(BaseModel):
     name: str | None = Field(default=None)
-    description: list[DescriptionSchema]
+    description: list[DescriptionSchema] = Field(..., description="Service Description")
     address: AddressSchema
     organization_id: UUID | None = Field(default=None)
-    instagram: HttpUrl | None = Field(..., description="Instagram URL")
-    twitter: HttpUrl | None = Field(..., description="Twitter URL")
-    facebook: HttpUrl | None = Field(..., description="Facebook URL")
-    linkedin: HttpUrl | None = Field(..., description="Linkedin URL")
-    website: HttpUrl | None = Field(..., description="Website URL")
+    instagram: HttpUrl | None = Field(default=None, description="Instagram URL")
+    twitter: HttpUrl | None = Field(default=None, description="Twitter URL")
+    facebook: HttpUrl | None = Field(default=None, description="Facebook URL")
+    linkedin: HttpUrl | None = Field(default=None, description="Linkedin URL")
+    website: HttpUrl | None = Field(default=None, description="Website URL")
     use_organization_logo: bool = Field(default=False, description="Use organization logo")
     identification_number: IdentificationNumber
     phone_number: PhoneNumber
