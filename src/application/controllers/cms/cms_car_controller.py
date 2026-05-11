@@ -16,7 +16,6 @@ from application.schemas.cms.request_schemas.car_schema import (
 from application.schemas.cms.response_schemas.car_schemas import (
     ListCarResponseSchema,
     ListCarTypeResponseSchema,
-    EngineTypeResponseSchema,
     ListEnginesResponseSchema,
 )
 
@@ -26,9 +25,7 @@ class CMSCarController:
     handler = CMSCarHandler()
 
     @staticmethod
-    @router.post(
-        path="/create-brand"
-    )
+    @router.post(path="/create-brand")
     async def create_brand(
         _: Annotated[JwtDC, Depends(get_current_user)],
         session: Annotated[AsyncSession, Depends(get_session)],
@@ -54,18 +51,13 @@ class CMSCarController:
         )
 
     @staticmethod
-    @router.post(
-        path="/create-car-type"
-    )
+    @router.post(path="/create-car-type")
     async def create_car_type(
         _: Annotated[JwtDC, Depends(get_current_user)],
         request: CreateCarTypeRequestSchema,
         session: Annotated[AsyncSession, Depends(get_session)],
     ):
-        return await CMSCarController.handler.add_car_type(
-            request=request,
-            session=session
-        )
+        return await CMSCarController.handler.add_car_type(request=request, session=session)
 
     @staticmethod
     @router.get(
@@ -76,21 +68,15 @@ class CMSCarController:
         session: Annotated[AsyncSession, Depends(get_session)],
         brand_name: str,
     ):
-        return await CMSCarController.handler.get_list_car_types(
-            session=session,
-            brand_name=brand_name
-        )
+        return await CMSCarController.handler.get_list_car_types(session=session, brand_name=brand_name)
 
     @staticmethod
-    @router.post(
-        path="/create-engine"
-    )
+    @router.post(path="/create-engine")
     async def create_car_engine(
         _: Annotated[JwtDC, Depends(get_current_user)],
         session: Annotated[AsyncSession, Depends(get_session)],
         request: Annotated[
-            Union[CreateEVEngineRequestSchema, CreateICEEngineRequestSchema],
-            Discriminator("engine_type")
+            Union[CreateEVEngineRequestSchema, CreateICEEngineRequestSchema], Discriminator("engine_type")
         ],
     ):
         return await CMSCarController.handler.add_engine(

@@ -1,28 +1,19 @@
 import asyncio
-import os
 from logging.config import fileConfig
-from dotenv import load_dotenv
 from alembic import context
 from sqlalchemy import engine_from_config, pool, Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from geoalchemy2 import Geometry
 from application.models.base import Base
 from application.models import *
-from application.models.engine import username
+from application.configs import settings
 
-load_dotenv()
 
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 target_metadata = [Base.metadata]
 config = context.config
-
-db_username = os.getenv("DB_USERNAME")
-password = os.getenv("DB_PASSWORD")
-host = os.getenv("DB_HOST", "localhost")
-port = os.getenv("DB_PORT", "5432")
-db_name = os.getenv("DB_NAME")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -31,7 +22,7 @@ if config.config_file_name is not None:
 
 config.set_main_option(
     "sqlalchemy.url",
-    f"""postgresql+asyncpg://{db_username}:{password}@{host}:{port}/{db_name}""",
+    settings.DB_URL,
 )
 
 # add your model's MetaData object here
@@ -45,6 +36,51 @@ config.set_main_option(
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+EXCLUDE_TABLES = (
+    'topology',
+    'layer',
+    'zip_state',
+    'zip_state_loc',
+    'zip_lookup',
+    'zip_lookup_all',
+    'zip_lookup_base',
+    'county',
+    'county_lookup',
+    'countysub_lookup',
+    'cousub',
+    'spatial_ref_sys',
+    'loader_platform',
+    'loader_variables',
+    'loader_lookuptables',
+    'direction_lookup',
+    'edges',
+    'faces',
+    'faces_edge_seq',
+    'featnames',
+    'geocode_settings',
+    'geocode_settings_default',
+    'pagc_gaz',
+    'pagc_lex',
+    'pagc_rules',
+    'place',
+    'place_lookup',
+    'secondary_unit_lookup',
+    'state',
+    'state_lookup',
+    'street_type_lookup',
+    'tabblock',
+    'tabblock20',
+    'tract',
+    'zcta5',
+    'addrfeat',
+    'addr',
+    'bg',
+)
+
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name in EXCLUDE_TABLES:
+        return False
+    return True
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -64,6 +100,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -71,7 +108,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(connection=connection, target_metadata=target_metadata, include_object=include_object)
 
     with context.begin_transaction():
         context.run_migrations()

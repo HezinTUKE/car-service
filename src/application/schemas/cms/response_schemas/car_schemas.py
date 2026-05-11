@@ -62,10 +62,7 @@ class ICEEngineResponseSchema(EngineResponseSchema):
     fuel_type: FuelType
 
 
-EngineUnion = Annotated[
-    Union[EVEngineResponseSchema, ICEEngineResponseSchema],
-    Discriminator("engine_type")
-]
+EngineUnion = Annotated[Union[EVEngineResponseSchema, ICEEngineResponseSchema], Discriminator("engine_type")]
 
 
 class ListEnginesResponseSchema(BaseModel):

@@ -31,10 +31,7 @@ class OrganizationController:
     ):
         request_schema = AddOrganizationRequestSchema(**json.loads(request_schema))
         return await OrganizationHandler.create_organization(
-            request_schema=request_schema,
-            user_id=current_user.user_id,
-            logo_file=logo_image,
-            session=session
+            request_schema=request_schema, user_id=current_user.user_id, logo_file=logo_image, session=session
         )
 
     @staticmethod

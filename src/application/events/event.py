@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import os
 import json
 from asyncio import Lock
-from dotenv import load_dotenv
 from aio_pika import connect_robust, Message
 from aio_pika.abc import AbstractMessage, AbstractChannel, AbstractRobustConnection, AbstractExchange
 
 from application.enums.services.rabbit_routers import ListenRabbitRouter, PublishRabbitRouter
-
-load_dotenv()
+from application.configs import settings
 
 
 _instance: RabbitProcessor | None = None
@@ -19,12 +16,12 @@ _lock = Lock()
 async def get_rabbit_processor():
     global _instance
 
-    username = os.getenv("AMQP_USERNAME")
-    password = os.getenv("AMQP_PASSWORD")
-    host = os.getenv("AMQP_HOST", "localhost")
-    port = int(os.getenv("AMQP_PORT", 5672))
-    exchange = os.getenv("AMQP_EXCHANGE")
-    durable = os.getenv("AMQP_DURABLE", True)
+    username = settings.AMQP_USERNAME
+    password = settings.AMQP_PASSWORD
+    host = settings.AMQP_HOST
+    port = settings.AMQP_PORT
+    exchange = settings.AMQP_EXCHANGE
+    durable = True
 
     async with _lock:
         if _instance is None:
@@ -51,9 +48,9 @@ class RabbitProcessor:
         self.channel = channel
         self.exchange = exchange
 
-        self.origin = os.getenv("ORIGIN", "CarService")
-        self.queue = os.getenv("AMQP_QUEUE", "events_queue")
-        self.durable = os.getenv("AMQP_DURABLE", True)
+        self.origin = settings.ORIGIN
+        self.queue = "events_queue"
+        self.durable = True
 
     async def listen(self):
         # exchange = await self.channel.declare_exchange(self.exchange, "topic", durable=self.durable)

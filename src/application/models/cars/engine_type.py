@@ -15,7 +15,9 @@ class EngineTypeModel(Base):
     torque_nm: Mapped[float] = mapped_column(Float, nullable=True)
 
     # offer_car_compatibilities: Mapped[list["OfferCarCompatibilityModel"]] = relationship("OfferCarCompatibilityModel", back_populates="engine_type", lazy="selectin")
-    user_car_relation: Mapped[list["UserCarRelationModel"]] = relationship("UserCarRelationModel", back_populates="engine_type", lazy="selectin")
+    user_car_relation: Mapped[list["UserCarRelationModel"]] = relationship(
+        "UserCarRelationModel", back_populates="engine_type", lazy="selectin"
+    )
 
     __mapper_args__ = {
         "polymorphic_on": engine_type,
@@ -43,7 +45,9 @@ class EVEngineModel(EngineTypeModel):
     engine_id: Mapped[int] = mapped_column(Integer, ForeignKey("engine_types.engine_id"), primary_key=True)
     battery_capacity_kwh: Mapped[float] = mapped_column(Float, nullable=False)
     electric_range_km: Mapped[int] = mapped_column(Integer, nullable=False)
-    charging_standard: Mapped[ChargingStandard] = mapped_column(Enum(ChargingStandard, length=20, native_enum=False), nullable=False)
+    charging_standard: Mapped[ChargingStandard] = mapped_column(
+        Enum(ChargingStandard, length=20, native_enum=False), nullable=False
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": EngineType.EV.value,

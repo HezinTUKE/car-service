@@ -52,7 +52,9 @@ class LoginHandler:
     async def reset_password(cls, email: str, new_password: str, confirmation_code: str):
         try:
             repo = CognitoService()
-            response = repo.reset_password(username=email, new_password=new_password, confirmation_code=confirmation_code)
+            response = repo.reset_password(
+                username=email, new_password=new_password, confirmation_code=confirmation_code
+            )
             return CognitoResponseSchema(response=response)
         except Exception as e:
             logger.exception("Error resetting password", exc_info=True)

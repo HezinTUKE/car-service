@@ -27,10 +27,7 @@ from application.utils.s3_service import S3Service
 
 
 class CMSCarHandler:
-    engine_map = {
-        EngineType.EV: EVEngineModel,
-        EngineType.ICE: ICEEngineModel
-    }
+    engine_map = {EngineType.EV: EVEngineModel, EngineType.ICE: ICEEngineModel}
 
     def __init__(self):
         self.prefix = ["car", "brand", "logo"]
@@ -76,21 +73,16 @@ class CMSCarHandler:
                         brand_id=record.car_brand_id,
                         brand_name=record.car_brand_name,
                         image_url=await s3_service.generate_persist_url(
-                            prefix=self.prefix,
-                            file_name=f"{record.car_brand_name.upper()}.{record.logo_extension}"
+                            prefix=self.prefix, file_name=f"{record.car_brand_name.upper()}.{record.logo_extension}"
                         ),
                     )
                     for record in records
-                ]
+                ],
             )
         except Exception:
             raise
 
-    async def add_car_type(
-        self,
-        request: CreateCarTypeRequestSchema,
-        session: AsyncSession
-    ):
+    async def add_car_type(self, request: CreateCarTypeRequestSchema, session: AsyncSession):
         try:
             brand = await session.get(CarBrandModel, request.brand_id)
 
@@ -110,11 +102,13 @@ class CMSCarHandler:
 
     async def get_list_car_types(self, brand_name: str, session: AsyncSession):
         try:
-            stmt = (select(CarBrandModel)
-                    .filter(CarBrandModel.car_brand_name.ilike(brand_name))
-                    .join(CarBrandModel.car_types)
-                    .options(selectinload(CarBrandModel.car_types))
-                    .order_by(CarTypeModel.car_type_name.desc()))
+            stmt = (
+                select(CarBrandModel)
+                .filter(CarBrandModel.car_brand_name.ilike(brand_name))
+                .join(CarBrandModel.car_types)
+                .options(selectinload(CarBrandModel.car_types))
+                .order_by(CarTypeModel.car_type_name.desc())
+            )
 
             result = await session.execute(stmt)
             record = result.scalars().first()
@@ -131,13 +125,15 @@ class CMSCarHandler:
                         type_name=car_type.car_type_name,
                     )
                     for car_type in record.car_types
-                ]
+                ],
             )
         except Exception:
             logger.exception("Failed to get car types", exc_info=True)
             raise
 
-    async def add_engine(self, engine: CreateEVEngineRequestSchema | CreateICEEngineRequestSchema, session: AsyncSession):
+    async def add_engine(
+        self, engine: CreateEVEngineRequestSchema | CreateICEEngineRequestSchema, session: AsyncSession
+    ):
         try:
             model_class = self.engine_map.get(engine.engine_type, None)
 
@@ -161,12 +157,11 @@ class CMSCarHandler:
         data = []
 
         for record in records:
-            model = ICEEngineResponseSchema.model_validate(record) \
-                if record.engine_type == EngineType.ICE \
+            model = (
+                ICEEngineResponseSchema.model_validate(record)
+                if record.engine_type == EngineType.ICE
                 else EVEngineResponseSchema.model_validate(record)
+            )
             data.append(model)
 
-        return ListEnginesResponseSchema(
-            total=len(records),
-            data=data
-        )
+        return ListEnginesResponseSchema(total=len(records), data=data)

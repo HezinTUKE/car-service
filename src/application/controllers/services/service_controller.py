@@ -14,7 +14,9 @@ from application.schemas.service_schemas.request_schemas.service_schema import (
     AddServiceRequestSchema,
 )
 from application.schemas.service_schemas.response_schemas.service_schema import (
-    ServiceItemsResponseSchema, ServiceResponseSchema, ServiceItemSchema,
+    ServiceItemsResponseSchema,
+    ServiceResponseSchema,
+    ServiceItemSchema,
 )
 
 
@@ -24,7 +26,7 @@ class ServiceController:
     @staticmethod
     @router.post("/add-service", response_model=ServiceResponseSchema)
     async def add_service(
-        current_user: Annotated[JwtDC, Depends(require_groups((Groups.USER, )))],
+        current_user: Annotated[JwtDC, Depends(require_groups((Groups.USER,)))],
         session: Annotated[AsyncSession, Depends(get_session)],
         request_schema: AddServiceRequestSchema = Body(...),
     ):
@@ -36,7 +38,7 @@ class ServiceController:
         service_id: str,
         logo_file: UploadFile,
         session: Annotated[AsyncSession, Depends(get_session)],
-        current_user: Annotated[JwtDC, Depends(require_groups((Groups.PENDING_SERVICE_ADMIN, )))],
+        current_user: Annotated[JwtDC, Depends(require_groups((Groups.PENDING_SERVICE_ADMIN,)))],
     ):
         return await ServiceHandler.upload_logo(service_id, logo_file, session, current_user.user_id)
 
@@ -46,7 +48,7 @@ class ServiceController:
         service_id: str,
         photos: list[UploadFile],
         session: Annotated[AsyncSession, Depends(get_session)],
-        current_user: Annotated[JwtDC, Depends(require_groups((Groups.PENDING_SERVICE_ADMIN, )))],
+        current_user: Annotated[JwtDC, Depends(require_groups((Groups.PENDING_SERVICE_ADMIN,)))],
     ):
         return await ServiceHandler.upload_photos(service_id, photos, session, current_user.user_id)
 
@@ -80,7 +82,19 @@ class ServiceController:
     async def approve_service(
         service_id: str,
         session: Annotated[AsyncSession, Depends(get_session)],
-        current_user: Annotated[JwtDC, Depends(require_groups((Groups.ADMIN, Groups.SERVICE_ADMIN, Groups.PENDING_SERVICE_ADMIN,
-                                                               Groups.ORGANIZATION_ADMIN, Groups.ORGANIZATION_MODERATOR)))],
+        current_user: Annotated[
+            JwtDC,
+            Depends(
+                require_groups(
+                    (
+                        Groups.ADMIN,
+                        Groups.SERVICE_ADMIN,
+                        Groups.PENDING_SERVICE_ADMIN,
+                        Groups.ORGANIZATION_ADMIN,
+                        Groups.ORGANIZATION_MODERATOR,
+                    )
+                )
+            ),
+        ],
     ):
         return await ServiceHandler.approve_service(service_id, session, current_user)

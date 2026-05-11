@@ -17,7 +17,7 @@ class FilterServiceRequestSchema(BaseModel):
 
 class AddServiceRequestSchema(BaseModel):
     name: str | None = Field(default=None)
-    description: list[DescriptionSchema] = Field(..., description="Service Description")
+    description: str = Field(..., description="Service Description")
     address: AddressSchema
     organization_id: UUID | None = Field(default=None)
     instagram: HttpUrl | None = Field(default=None, description="Instagram URL")

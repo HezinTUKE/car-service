@@ -20,6 +20,7 @@ class ServiceModel(Base):
     user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     approved_by: Mapped[str] = mapped_column(String, nullable=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    description: Mapped[str] = mapped_column(Text, nullable=False, index=True)
 
     country: Mapped[Country] = mapped_column(Enum(Country, native_enum=False, length=50), nullable=False, index=True)
     city: Mapped[str] = mapped_column(String, nullable=False, index=True)
@@ -38,7 +39,9 @@ class ServiceModel(Base):
     twitter: Mapped[str] = mapped_column(String, nullable=True, index=True)
     website: Mapped[str] = mapped_column(String, nullable=True, index=True)
 
-    state: Mapped[RecordState] = mapped_column(Enum(RecordState, native_enum=False, length=20), nullable=False, default=RecordState.PENDING, index=True)
+    state: Mapped[RecordState] = mapped_column(
+        Enum(RecordState, native_enum=False, length=20), nullable=False, default=RecordState.PENDING, index=True
+    )
 
     created_at: Mapped[int] = mapped_column(Integer, index=True, nullable=False, default=lambda: int(time.time()))
     updated_at: Mapped[int] = mapped_column(
@@ -49,6 +52,5 @@ class ServiceModel(Base):
         "OrganizationModel", back_populates="services", lazy="selectin"
     )
     offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services", lazy="selectin")
-    description: Mapped[list["ServiceDescriptionModel"]] = relationship("ServiceDescriptionModel", back_populates="services", lazy="selectin")
 
     __table_args__ = (UniqueConstraint("name", "identification_number", name="uq_identification_number_name"),)

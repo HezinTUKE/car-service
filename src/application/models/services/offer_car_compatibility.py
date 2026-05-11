@@ -8,9 +8,7 @@ from application.models.base import Base
 class OfferCarCompatibilityModel(Base):
     __tablename__ = "offer_car_compatibility"
 
-    offer_car_compatibility_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    offer_car_compatibility_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     offer_id: Mapped[str] = mapped_column(
         UUID(as_uuid=False), ForeignKey("offers.offer_id"), nullable=False, index=True
     )

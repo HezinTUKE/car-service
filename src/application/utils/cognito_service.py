@@ -1,27 +1,23 @@
 import base64
 import hashlib
 import hmac
-import os
 from boto3 import Session
-from debugpy.adapter import access_token
 from loguru import logger
 from botocore.exceptions import ClientError
-from dotenv import load_dotenv
 
 from application.enums.groups import Groups
 from application.schemas.auth_response_schemas import AuthResponseSchema
 from application.utils.exceptions import BadRequestException
-
-load_dotenv()
+from application.configs import settings
 
 
 class CognitoService:
-    app_client_id: str = os.getenv("AWS_COGNITO_APP_CLIENT_ID")
-    app_client_secret: str = os.getenv("AWS_COGNITO_APP_CLIENT_SECRET")
+    app_client_id: str = settings.AWS_COGNITO_APP_CLIENT_ID
+    app_client_secret: str = settings.AWS_COGNITO_APP_CLIENT_SECRET
 
     def __init__(self):
-        session = Session(profile_name=os.getenv("AWS_PROFILE", "default"))
-        self.client = session.client("cognito-idp", region_name=os.getenv("AWS_REGION", "us-east-1"))
+        session = Session(profile_name=settings.AWS_PROFILE)
+        self.client = session.client("cognito-idp", region_name=settings.AWS_REGION)
 
     def sign_up_user(self, password: str, email: str):
         try:
@@ -43,7 +39,7 @@ class CognitoService:
                 raise BadRequestException("Username is required to add user to group")
 
             response = self.client.admin_add_user_to_group(
-                UserPoolId=os.getenv("AWS_USER_POOL_ID"),
+                UserPoolId=settings.AWS_USER_POOL_ID,
                 Username=username,
                 GroupName=group_name.value,
             )
@@ -77,9 +73,7 @@ class CognitoService:
 
     def logout_user(self, access_token: str):
         try:
-            response = self.client.global_sign_out(
-                AccessToken=access_token
-            )
+            response = self.client.global_sign_out(AccessToken=access_token)
             return response
         except ClientError as e:
             logger.exception("Error logging out user", exc_info=True)

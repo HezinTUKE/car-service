@@ -1,26 +1,24 @@
-import os
 from typing import Annotated
 
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer
 from jose import jwt
-from dotenv import load_dotenv
 import requests
 from loguru import logger
 
 from application.dto.jwt_dc import JwtDC
 from application.enums.groups import Groups
+from application.configs import settings
 
-load_dotenv()
 
 security = HTTPBearer()
-jwks = requests.get(os.getenv("AWS_COGNITO_SIGNING_KEY_URL")).json()
+jwks = requests.get(settings.AWS_COGNITO_SIGNING_KEY_URL).json()
 
 
 def verify_token(token: str):
     headers = jwt.get_unverified_header(token)
     kid = headers.get("kid")
-    app_client_id= os.getenv("AWS_COGNITO_APP_CLIENT_ID")
+    app_client_id = settings.AWS_COGNITO_APP_CLIENT_ID
     key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
 
     if not key:
@@ -28,11 +26,7 @@ def verify_token(token: str):
 
     try:
         payload = jwt.decode(
-            token=token,
-            key=key,
-            algorithms=["RS256"],
-            audience=app_client_id,
-            issuer=os.getenv("AWS_COGNITO_ISSUER")
+            token=token, key=key, algorithms=["RS256"], audience=app_client_id, issuer=settings.AWS_COGNITO_DOMAIN
         )
         token_use = payload.get("token_use")
 
@@ -50,7 +44,7 @@ def verify_token(token: str):
             user_id=payload["sub"],
             token=token,
             token_type=token_use,
-            groups=payload.get("cognito:groups", [Groups.USER.value])
+            groups=payload.get("cognito:groups", [Groups.USER.value]),
         )
     except Exception:
         logger.exception("Token verification failed", exc_info=True)
@@ -67,4 +61,5 @@ def require_groups(allowed_groups: tuple):
         if not any(group.value in jwt_dc.groups for group in allowed_groups):
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return jwt_dc
+
     return dependency

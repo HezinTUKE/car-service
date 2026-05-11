@@ -20,6 +20,4 @@ class UserController:
         current_user: Annotated[JwtDC, Depends(get_current_user)],
         session: Annotated[AsyncSession, Depends(get_session)],
     ):
-        return await UserHandler.create_user_setup(
-            user_setup=request, user_id=current_user.user_id, session=session
-        )
+        return await UserHandler.create_user_setup(user_setup=request, user_id=current_user.user_id, session=session)

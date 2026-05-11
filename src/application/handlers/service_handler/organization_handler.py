@@ -23,10 +23,10 @@ from application.utils.s3_service import S3Service
 
 
 class OrganizationHandler:
-
     @classmethod
-    async def create_organization(cls, request_schema: AddOrganizationRequestSchema, user_id: str,
-                                  logo_file: UploadFile, session: AsyncSession):
+    async def create_organization(
+        cls, request_schema: AddOrganizationRequestSchema, user_id: str, logo_file: UploadFile, session: AsyncSession
+    ):
         try:
             location: Location = await get_location(
                 country=request_schema.country,
@@ -45,9 +45,7 @@ class OrganizationHandler:
             )
 
             model = OrganizationModel(
-                **request_schema.model_dump(
-                    exclude={"latitude", "longitude"}
-                ),
+                **request_schema.model_dump(exclude={"latitude", "longitude"}),
                 owner=user_id,
                 location=from_shape(Point(location.longitude, location.latitude), srid=4326),
                 original_full_address=location.address,
@@ -86,9 +84,13 @@ class OrganizationHandler:
     @classmethod
     async def remove_organization(cls, organization_id: str, current_user: JwtDC, session: AsyncSession):
         try:
-            _query = select(OrganizationModel).filter(
-                OrganizationModel.organization_id == organization_id,
-            ).with_for_update()
+            _query = (
+                select(OrganizationModel)
+                .filter(
+                    OrganizationModel.organization_id == organization_id,
+                )
+                .with_for_update()
+            )
             _query_result = await session.execute(_query)
             organization: OrganizationModel = _query_result.scalar_one_or_none()
 
@@ -162,5 +164,5 @@ class OrganizationHandler:
             longitude=geo.x,
             latitude=geo.y,
             original_full_address=organization.original_full_address,
-            status=organization.status
+            status=organization.status,
         )

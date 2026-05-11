@@ -29,14 +29,15 @@ class OrganizationModel(Base):
     location: Mapped[WKBElement] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=False)
     original_full_address: Mapped[str] = mapped_column(String, nullable=False, index=True)
     identification_number: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    status: Mapped[RecordStatus] = mapped_column(Enum(RecordStatus, native_enum=False, length=50), nullable=False, index=True, default=RecordStatus.INACTIVE)
+    status: Mapped[RecordStatus] = mapped_column(
+        Enum(RecordStatus, native_enum=False, length=50), nullable=False, index=True, default=RecordStatus.INACTIVE
+    )
     owner: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
 
     created_at = mapped_column(Integer, index=True, default=lambda: int(time.time()))
     updated_at = mapped_column(Integer, index=True, default=lambda: int(time.time()), onupdate=lambda: int(time.time()))
 
     services: Mapped[list["ServiceModel"]] = relationship("ServiceModel", back_populates="organization")
-    description: Mapped[list["OrganizationDescriptionModel"]] = relationship("OrganizationDescriptionModel", back_populates="organization", lazy="selectin")
 
     __table_args__ = (
         UniqueConstraint("name", "identification_number", name="uq_service_identification_number_name"),

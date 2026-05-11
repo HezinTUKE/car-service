@@ -16,7 +16,6 @@ from application.utils.exceptions import DBException
 
 
 class OffersHandler:
-
     @classmethod
     async def add_offers(cls, offer_schema: AddOffersRequestSchema, session: AsyncSession):
         service_id = offer_schema.service_id

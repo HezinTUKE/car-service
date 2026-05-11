@@ -3,7 +3,6 @@ from geoalchemy2 import Geography
 from geoalchemy2.functions import ST_Distance
 from loguru import logger
 from geopy import Location
-from requests import session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, type_coerce
 from sqlalchemy.orm import selectinload
@@ -13,18 +12,20 @@ from geoalchemy2.shape import from_shape, to_shape
 from application.dto.jwt_dc import JwtDC
 from application.enums.groups import Groups
 from application.enums.record_state import RecordState
-from application.models import ServiceModel, OrganizationModel, ServiceDescriptionModel
+from application.models import ServiceModel, OrganizationModel
 from application.schemas.service_schemas.request_schemas.service_schema import (
     FilterServiceRequestSchema,
     AddServiceRequestSchema,
 )
 from application.schemas.service_schemas.response_schemas.service_schema import (
     ServiceItemSchema,
-    ServiceItemsResponseSchema, ServiceResponseSchema, ServiceListItemSchema,
+    ServiceItemsResponseSchema,
+    ServiceResponseSchema,
+    ServiceListItemSchema,
 )
 from application.schemas.service_schemas.response_schemas.offer_schema import OffersSchema
 from application.utils.cognito_service import CognitoService
-from application.utils.exceptions import DBException, BadRequestException, ServerException, ForbiddenException
+from application.utils.exceptions import BadRequestException, ServerException, ForbiddenException
 from application.utils.get_location import get_location
 from application.utils.handler_helpers import get_entity_result
 from application.utils.s3_service import S3Service
@@ -74,22 +75,13 @@ class ServiceHandler:
                 twitter=service_schema.twitter.encoded_string() or None,
                 website=service_schema.website.encoded_string() or None,
                 identification_number=service_schema.identification_number,
+                description=service_schema.description,
             )
             session.add(service_model)
-            await session.flush()
-
-            descriptions = [
-                ServiceDescriptionModel(
-                    service_id=service_model.service_id,
-                    content=description.content,
-                    language_code=description.language_code,
-                ) for description in service_schema.description
-            ]
-
-            session.add_all(descriptions)
             await session.commit()
 
-            cls.cognito.add_user_to_group(username=current_user.user_id, group_name=Groups.PENDING_SERVICE_ADMIN)
+            # cls.cognito.add_user_to_group(username=current_user.user_id, group_name=Groups.PENDING_SERVICE_ADMIN)
+            cls.cognito.add_user_to_group(username=current_user.user_id, group_name=Groups.SERVICE_ADMIN)
 
             return ServiceResponseSchema.model_validate(service_model)
         except Exception:
@@ -163,19 +155,13 @@ class ServiceHandler:
                 latitude = float(latitude)
                 longitude = float(longitude)
 
-                user_location = func.ST_SetSRID(func.ST_MakePoint(
-                    longitude, latitude), 4326
-                )
+                user_location = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326)
 
                 geom_geo = type_coerce(ServiceModel.location, Geography)
                 point_geo = type_coerce(user_location, Geography)
 
-                base_query = (
-                    base_query
-                    .add_columns(
-                        ST_Distance(geom_geo, point_geo).label("distance_meters")
-                    )
-                    .order_by(ST_Distance(geom_geo, point_geo))
+                base_query = base_query.add_columns(ST_Distance(geom_geo, point_geo).label("distance_meters")).order_by(
+                    ST_Distance(geom_geo, point_geo)
                 )
 
             base_query = base_query.options(
@@ -198,10 +184,16 @@ class ServiceHandler:
             data = []
 
             for service in services:
-                service_model: ServiceModel = service["ServiceModel"] if service_filter.current_location is not None else service
+                service_model: ServiceModel = (
+                    service["ServiceModel"] if service_filter.current_location is not None else service
+                )
 
                 prefix = ["services", "logo"] if service_model.use_organization_logo else ["organizations", "logo"]
-                file_name = str(service_model.service_id) if service_model.use_organization_logo else str(service_model.organization.organization_id)
+                file_name = (
+                    str(service_model.service_id)
+                    if service_model.use_organization_logo
+                    else str(service_model.organization.organization_id)
+                )
 
                 logo = await s3.generate_persist_url(file_name=file_name, prefix=prefix)
 
@@ -210,7 +202,9 @@ class ServiceHandler:
                         service_id=service_model.service_id,
                         logo=logo,
                         name=service_model.name,
-                        distance_meters=service.get("distance_meters") if service_filter.current_location is not None else None,
+                        distance_meters=service.get("distance_meters")
+                        if service_filter.current_location is not None
+                        else None,
                     )
                 )
 
@@ -267,7 +261,7 @@ class ServiceHandler:
             raise
 
     @classmethod
-    async def approve_service(cls, service_id: str,  session: AsyncSession, current_user: JwtDC):
+    async def approve_service(cls, service_id: str, session: AsyncSession, current_user: JwtDC):
         try:
             service = await session.get(ServiceModel, service_id)
 

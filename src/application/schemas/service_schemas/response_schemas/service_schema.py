@@ -64,6 +64,7 @@ class ServiceListItemSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ServiceItemsResponseSchema(BaseModel):
     data: list[ServiceListItemSchema]
     total: int

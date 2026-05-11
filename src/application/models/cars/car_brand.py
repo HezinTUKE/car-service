@@ -5,7 +5,7 @@ from application.models.base import Base
 
 
 class CarBrandModel(Base):
-    __tablename__ = 'car_brands'
+    __tablename__ = "car_brands"
 
     car_brand_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     car_brand_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)

@@ -1,16 +1,15 @@
 import os.path
 from io import BytesIO
 
-from dotenv import load_dotenv
 from loguru import logger
 from boto3 import Session
 from boto3.s3.transfer import TransferConfig
 from boto3.exceptions import S3UploadFailedError
 from fastapi import UploadFile
 
+from application.configs import settings
 from application.utils.exceptions import BadRequestException, ServerException
 
-load_dotenv()
 
 
 class S3Service:
@@ -20,13 +19,15 @@ class S3Service:
 
     def __init__(self, allowed_extensions: tuple = None):
         session = Session(profile_name="default")
-        self.bucket_name = os.getenv("AWS_BUCKET_NAME")
+        self.bucket_name = settings.AWS_BUCKET_NAME
         self.client = session.client("s3")
         self.allowed_extensions = allowed_extensions
 
     async def upload_file_to_s3(self, file: UploadFile, prefix: list[str], file_name: str) -> bool:
         if not file.filename.lower().endswith(self.allowed_extensions):
-            raise BadRequestException(f"File type {file.content_type} is not allowed. Allowed types: {', '.join(self.allowed_extensions)}")
+            raise BadRequestException(
+                f"File type {file.content_type} is not allowed. Allowed types: {', '.join(self.allowed_extensions)}"
+            )
 
         if file.size > self.file_max_size:
             raise BadRequestException(f"File size must be less than {self.file_max_size} bytes")
@@ -81,7 +82,7 @@ class S3Service:
                     Params={
                         "Bucket": self.bucket_name,
                         "Key": obj["Key"],
-                    }
+                    },
                 )
                 urls.append(url)
 
