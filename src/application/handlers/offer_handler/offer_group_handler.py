@@ -6,11 +6,11 @@ from application.models import OfferGroupModel
 from application.schemas.cms.response_schemas.service_schemas import OfferGroupListSchema
 
 
-class ServiceCmsHandler:
+class OfferGroupHandler:
     @staticmethod
-    async def create_offer(group_name: str, session: AsyncSession):
+    async def create_offer(group_name: str, service_id: str, session: AsyncSession):
         try:
-            offer_group = OfferGroupModel(name=group_name)
+            offer_group = OfferGroupModel(name=group_name, )
             session.add(offer_group)
             await session.commit()
 

@@ -1,7 +1,9 @@
 import base64
 import hashlib
 import hmac
-from boto3 import Session
+from fastapi import HTTPException, status
+
+from boto3 import client
 from loguru import logger
 from botocore.exceptions import ClientError
 
@@ -14,10 +16,10 @@ from application.configs import settings
 class CognitoService:
     app_client_id: str = settings.AWS_COGNITO_APP_CLIENT_ID
     app_client_secret: str = settings.AWS_COGNITO_APP_CLIENT_SECRET
+    user_pool_id: str = settings.AWS_USER_POOL_ID
 
     def __init__(self):
-        session = Session(profile_name=settings.AWS_PROFILE)
-        self.client = session.client("cognito-idp", region_name=settings.AWS_REGION)
+        self.client = client("cognito-idp", region_name=settings.AWS_REGION)
 
     def sign_up_user(self, password: str, email: str):
         try:
@@ -29,9 +31,10 @@ class CognitoService:
                 UserAttributes=[{"Name": "email", "Value": email}],
             )
             return response
-        except ClientError as e:
-            logger.exception("Error signing up user", exc_info=True)
-            raise e
+        except self.client.exceptions.UsernameExistsException:
+            raise BadRequestException(detail="Username already exists")
+        except self.client.exceptions.InvalidPasswordException:
+            raise BadRequestException(detail="Invalid password")
 
     def add_user_to_group(self, username: str, group_name: Groups):
         try:
@@ -39,7 +42,7 @@ class CognitoService:
                 raise BadRequestException("Username is required to add user to group")
 
             response = self.client.admin_add_user_to_group(
-                UserPoolId=settings.AWS_USER_POOL_ID,
+                UserPoolId=self.user_pool_id,
                 Username=username,
                 GroupName=group_name.value,
             )

@@ -1,12 +1,18 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=BASE_DIR / ".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
     ENVIRONMENT: str = "DEV"
@@ -19,7 +25,7 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_NAME: str
 
-    #REDIS
+    # REDIS
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_DB: int
@@ -45,7 +51,6 @@ class Settings(BaseSettings):
     # STRIPE
     STRIPE_API_KEY: str
     STRIPE_SECRET_KEY: str
-
 
     @computed_field
     @property

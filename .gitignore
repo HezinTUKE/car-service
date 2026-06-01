@@ -7,4 +7,6 @@ config.yml
 docker-compose.yaml
 *.lock
 *.log
-src/.env
+.env
+.env.example
+*.json

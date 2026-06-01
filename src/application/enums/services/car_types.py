@@ -1,49 +1,49 @@
 from enum import Enum
 
-
-class CarType(str, Enum):
+class BodyType(str, Enum):
     # Passenger cars
-    SEDAN = "SEDAN"
-    HATCHBACK = "HATCHBACK"
-    COUPE = "COUPE"
-    CONVERTIBLE = "CONVERTIBLE"
-    WAGON = "WAGON"
-    LIFTBACK = "LIFTBACK"
+    HATCHBACK = "Hatchback"
+    SEDAN = "Sedan"
+    ESTATE = "Estate"
+    COUPE = "Coupe"
+    COUPE_SUV = "Coupe SUV"
+    FASTBACK = "Fastback"
+    CONVERTIBLE = "Convertible"
+    ROADSTER = "Roadster"
 
-    # Performance & luxury
-    SPORTS = "SPORTS"
-    SUPER_CAR = "SUPER_CAR"
-    LUXURY = "LUXURY"
-    CLASSIC = "CLASSIC"
-
-    # SUVs & off-road
+    # SUVs & Crossovers
     SUV = "SUV"
-    CROSSOVER = "CROSSOVER"
-    OFF_ROAD = "OFF_ROAD"
+    CROSSOVER = "Crossover"
+    OFF_ROAD = "Off-road"
 
-    # Commercial & utility
-    PICKUP = "PICKUP"
-    TRUCK = "TRUCK"
-    VAN = "VAN"
-    MINIVAN = "MINIVAN"
-    BUS = "BUS"
-    BOX_TRUCK = "BOX_TRUCK"
+    # Multi-purpose
+    MPV = "MPV"
+    MINIVAN = "Minivan"
+    MICROVAN = "Microvan"
 
-    # Powertrain types
-    ELECTRIC = "ELECTRIC"
-    HYBRID = "HYBRID"
-    PLUG_IN_HYBRID = "PLUG_IN_HYBRID"
-    HYDROGEN = "HYDROGEN"
+    # Commercial - light
+    VAN = "Van"
+    MINIBUS = "Minibus"
+    PICKUP = "Pickup"
 
-    # Special purpose
-    TAXI = "TAXI"
-    POLICE = "POLICE"
-    AMBULANCE = "AMBULANCE"
-    FIRE_TRUCK = "FIRE_TRUCK"
-    MILITARY = "MILITARY"
+    # Commercial - heavy
+    TRUCK = "Truck"
+    SEMI_TRUCK = "Semi-truck"
+    TIPPER = "Tipper"
+    BOX_TRUCK = "Box Truck"
+    REFRIGERATED_TRUCK = "Refrigerated Truck"
+    TANKER = "Tanker"
+    FLATBED = "Flatbed"
 
-    # Two & three wheelers (optional, remove if not needed)
-    MOTORCYCLE = "MOTORCYCLE"
-    SCOOTER = "SCOOTER"
+    # Buses
+    BUS = "Bus"
+    COACH = "Coach"
+    SCHOOL_BUS = "School Bus"
+    ARTICULATED_BUS = "Articulated Bus"
 
-    ALL = "ALL"
+    # Special / Other
+    AMBULANCE = "Ambulance"
+    FIRE_TRUCK = "Fire Truck"
+    TRACTOR = "Tractor"
+    FORKLIFT = "Forklift"
+    OTHER = "Other"

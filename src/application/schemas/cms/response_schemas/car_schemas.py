@@ -44,7 +44,7 @@ class EngineResponseSchema(BaseModel):
     power_output: float
     torque_nm: float
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 

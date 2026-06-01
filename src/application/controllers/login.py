@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Body
-from application.controllers import LOGIN_CONTROLLER_PREFIX
 from application.dto.jwt_dc import JwtDC
 from application.deps.auth_deps import get_current_user
 from application.handlers.login_handler import LoginHandler
@@ -14,7 +13,7 @@ from application.schemas.auth_response_schemas import AuthResponseSchema, Cognit
 
 
 class LoginController:
-    router = APIRouter(prefix=f"/{LOGIN_CONTROLLER_PREFIX}", tags=[LOGIN_CONTROLLER_PREFIX])
+    router = APIRouter(prefix=f"/auth", tags=["auth"])
 
     @staticmethod
     @router.post(

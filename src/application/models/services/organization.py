@@ -10,6 +10,13 @@ from application.enums.services.record_status import RecordStatus
 from application.models.base import Base
 
 
+"""
+    OrganizationModel represents an organization that offers services. 
+    It includes details such as the name, description, location, and contact information of the organization. 
+    Each organization can have multiple services associated with it, and it is linked to specific users who own the organization.
+"""
+
+
 class OrganizationModel(Base):
     __tablename__ = "organization"
 

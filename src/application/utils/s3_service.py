@@ -11,7 +11,6 @@ from application.configs import settings
 from application.utils.exceptions import BadRequestException, ServerException
 
 
-
 class S3Service:
     chunk_size: int = 1024 * 1024 * 5
     file_max_size: int = 1024 * 1024 * 5

@@ -10,6 +10,13 @@ from application.enums.services.country import Country
 from application.models.base import Base
 
 
+"""
+    ServiceModel represents a service offered by an organization. 
+    It includes details such as the name, description, location, and contact information of the service. 
+    Service can be associated with an organization and can have multiple offer groups that define specific offers related to the service. 
+"""
+
+
 class ServiceModel(Base):
     __tablename__ = "services"
 
@@ -51,6 +58,6 @@ class ServiceModel(Base):
     organization: Mapped["OrganizationModel"] = relationship(
         "OrganizationModel", back_populates="services", lazy="selectin"
     )
-    offers: Mapped[list["OfferModel"]] = relationship("OfferModel", back_populates="services", lazy="selectin")
+    service_offer_group: Mapped["ServiceOfferGroup"] = relationship("ServiceOfferGroup", back_populates="services", lazy="selectin")
 
     __table_args__ = (UniqueConstraint("name", "identification_number", name="uq_identification_number_name"),)

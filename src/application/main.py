@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from loguru import logger
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 
 from application.controllers.cms.cms_controller import CMSController
 from application.controllers.login import LoginController
@@ -38,13 +38,18 @@ async def all_loggers(request, call_next):
     logger.info(f"Response: {response.status_code} for {request.method} {request.url}")
     return response
 
-app.include_router(UserController.router)
-app.include_router(LoginController.router)
-app.include_router(ServiceController.router)
-app.include_router(OrganizationController.router)
-app.include_router(OfferController.router)
-app.include_router(ScheduleController.router)
-app.include_router(CMSController.router)
+
+main_router = APIRouter(prefix="/api/v1")
+
+main_router.include_router(UserController.router)
+main_router.include_router(LoginController.router)
+main_router.include_router(ServiceController.router)
+main_router.include_router(OrganizationController.router)
+main_router.include_router(OfferController.router)
+main_router.include_router(ScheduleController.router)
+main_router.include_router(CMSController.router)
+
+app.include_router(main_router)
 
 
 def main():
